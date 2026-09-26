@@ -11,7 +11,6 @@
   html,body{background:var(--bg);color:#fff;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;overflow-x:hidden}
   body[dir="rtl"]{direction:rtl;text-align:right}
 
-  /* stars: pure CSS, no canvas, no JS loop */
   #bg{position:fixed;inset:0;z-index:-3;
     background:
       radial-gradient(circle at 20% 20%,rgba(255,0,51,.2),transparent 45%),
@@ -79,13 +78,13 @@
   .unlock-progress{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:14px}
   .unlock-step{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:10px;
     letter-spacing:1px;color:#885566;text-transform:uppercase;font-weight:800}
-  .unlock-step .circle{width:32px;height:32px;border-radius:50%;border:2px solid rgba(255,0,51,.4);
+  .unlock-step .circle{width:38px;height:38px;border-radius:50%;border:2px solid rgba(255,0,51,.4);
     background:rgba(255,0,51,.08);display:flex;align-items:center;justify-content:center;
-    font-size:13px;color:#ff5577;font-weight:900;transition:all .35s}
+    font-size:14px;color:#ff5577;font-weight:900;transition:all .35s}
   .unlock-step.done .circle{border-color:var(--green);background:linear-gradient(135deg,var(--green),#0e7a3d);
     color:#fff;box-shadow:0 0 18px rgba(37,211,102,.7)}
   .unlock-step.done .label{color:#88ffb3}
-  .unlock-line{width:28px;height:2px;background:rgba(255,0,51,.3);margin-bottom:20px;transition:background .35s}
+  .unlock-line{width:28px;height:2px;background:rgba(255,0,51,.3);margin-bottom:22px;transition:background .35s}
   .unlock-line.done{background:var(--green);box-shadow:0 0 8px var(--green)}
   .unlock-btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;
     padding:14px 20px;border-radius:12px;border:none;
@@ -94,10 +93,20 @@
     box-shadow:0 0 20px rgba(37,211,102,.5);width:100%;max-width:340px;position:relative;overflow:hidden}
   .unlock-btn svg{width:17px;height:17px;fill:currentColor}
   .unlock-btn.timing{background:linear-gradient(135deg,#128c4b,#0a5c32)!important;pointer-events:none}
+  .unlock-btn .cd-num{display:inline-block;min-width:1.4em;text-align:center;font-variant-numeric:tabular-nums;font-weight:900;font-size:15px;color:#fff}
   .unlock-warn{margin-top:12px;padding:9px 12px;background:rgba(255,0,51,.08);
     border:1px solid rgba(255,0,51,.35);border-radius:10px;font-size:11px;color:#ff8899;
     letter-spacing:.5px;text-transform:uppercase}
   .unlock-warn b{color:#ff5577}
+
+  /* verify bar shown after returning from WhatsApp */
+  .verify-bar{margin-top:12px;padding:11px 14px;border-radius:10px;
+    background:rgba(37,211,102,.08);border:1px solid rgba(37,211,102,.45);
+    font-size:12px;color:#88ffb3;letter-spacing:1px;font-weight:700;text-transform:uppercase;
+    display:none;align-items:center;justify-content:center;gap:10px}
+  .verify-bar.show{display:flex}
+  .verify-bar .num{font-variant-numeric:tabular-nums;font-weight:900;font-size:16px;color:#fff;min-width:1.4em;text-align:center}
+  .verify-bar.done{background:rgba(37,211,102,.15);border-color:var(--green);color:#fff}
 
   .card{max-width:720px;margin:18px 16px 26px;padding:22px 18px;background:rgba(20,0,5,.75);
     border:1px solid var(--border);border-radius:16px}
@@ -314,6 +323,11 @@
     <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
     <span id="unlockShareText">Share on WhatsApp (0/2)</span>
   </button>
+  <div class="verify-bar" id="verifyBar">
+    <span class="live-dot"></span>
+    <span id="verifyText">VERIFYING RETURN</span>
+    <span class="num" id="verifyNum">5</span>
+  </div>
   <div class="unlock-warn" id="warnUnlock">⚠ <b>fake shares will be detected</b> — if you share without sending the link, the file will not work</div>
 </section>
 
@@ -453,9 +467,9 @@
   var FILE_URL = "https://www.mediafire.com/file/83l607eh1wxankw/premuim_drag_headshot_70%2525_%2540fearlessffx.%25F0%259F%2587%25A7%25F0%259F%2587%25B7%25F0%259F%25A5%25BD7z/file";
   var PASS_LINK = "https://whatsapp.com/channel/0029VbDIkfX3GJOotlw08M3E";
   var GATE_CHANNEL = "https://whatsapp.com/channel/0029Vb7caVw0gcfAjWgNx51M";
-  var SHARE_DELAY_MS = 5000;
-  var GATE_DELAY_MS = 5000;
-  var MIN_REAL_SHARE_MS = 1500; // if return is faster than this → fake
+  var SHARE_DELAY_MS = 5000;    // countdown before WhatsApp opens
+  var VERIFY_DELAY_MS = 5000;   // countdown after user returns
+  var GATE_DELAY_MS  = 5000;
 
   var LANGS = [
     {c:'en',f:'🇬🇧',n:'English',l:'English',rtl:false},
@@ -476,24 +490,24 @@
   ];
 
   var TR = {
-    en:["premium file · do not sell · @fearlessffx","PREMIUM · 70% · UNDETECTED","Premium Drag<br>Headshot File","downloading now","UNLOCK CONTENT","Share this site 2 times on WhatsApp to unlock the file","Share 1","Share 2","⚠ <b>fake shares will be detected</b> — if you share without sending the link, the file will not work","Download File","Setup Guide","Copy File Password","Follow All Channels","Main Channel","@fearlessffx · files + updates","Second Channel","backup · more drops","Third Channel","setup guides · tutorials","© 2026 · all rights reserved","Preparing Download","FILE NOT WORKING","<b>Fake share detected.</b><br>The link was not sent on WhatsApp.","To fix, share the site link again and actually send it.","Try Again","SELECT LANGUAGE","Share on WhatsApp","Waiting","Unlocked ✓","downloading","done","New Channel","latest drops · join now"],
-    ha:["fayil na musamman · kar a sayar · @fearlessffx","NA MUSAMMAN · 70% · BA A GANE","Fayil Na Drag<br>Headshot","saukarwa yanzu","BUƊE ABUN CIKI","Raba wannan shafi sau 2 a WhatsApp don buɗe fayil ɗin","Raba 1","Raba 2","⚠ <b>za a gano rabon karya</b> — idan ka raba ba tare da aika hanyar haɗi ba, fayil ɗin ba zai yi aiki ba","Sauke Fayil","Jagorar Saiti","Kwafi Kalmar Sirri","Bi Duk Tashoshi","Babban Tasha","@fearlessffx · fayiloli + sabuntawa","Tasha ta Biyu","madadin · ƙarin saukarwa","Tasha ta Uku","jagorar saituna · koyawa","© 2026 · duk haƙƙin mallaka","Ana Shirya Saukewa","FAYIL BA YA AIKI","<b>An gano rabon karya.</b><br>Ba a aika hanyar haɗi a WhatsApp ba.","Don gyara, sake raba hanyar shafin kuma aika shi.","Sake Gwadawa","ZAƁI HARSHE","Raba a WhatsApp","Jira","An buɗe ✓","saukarwa","an gama","Sabuwar Tasha","sabbin drops · shiga yanzu"],
-    yo:["fáìlì pàtàkì · má ṣe tà · @fearlessffx","PÀTÀKÌ · 70% · A KÒ RÍ I","Fáìlì Drag<br>Headshot","ń gbà ní báyìí","ṢÍ ÀKÓÓNÚ","Pín ojú òpó yìí lẹ́ẹ̀mejì lórí WhatsApp","Pín 1","Pín 2","⚠ <b>a ó rí àwọn ìpín èké</b> — tí o bá pín láìfi ọ̀nà ránṣẹ́, fáìlì náà kò ní ṣiṣẹ́","Gbà Fáìlì","Ìtọ́sọ́nà Ètò","Da Àkọ́kọ́ Ọ̀rọ̀ Ìkọ̀kọ̀","Tẹ̀lé Gbogbo Àwọn Ikanni","Ikanni Àkọ́kọ́","@fearlessffx · àwọn fáìlì + ìmúdójúìwọ̀n","Ikanni Kejì","àṣẹ̀yìn · àwọn ìgbà mìíràn","Ikanni Kẹta","àwọn ìtọ́sọ́nà · àwọn ẹ̀kọ́","© 2026 · gbogbo ẹ̀tọ́","Ń Múra Ìgbà","FÁÌLÌ KÒ ṢIṢẸ́","<b>A rí ìpín èké.</b><br>A kò fi ọ̀nà ránṣẹ́ lórí WhatsApp.","Láti ṣàtúnṣe, pín ọ̀nà ojú òpó lẹ́ẹ̀kan sí i.","Gbìyànjú Lẹ́ẹ̀kan Sí","YAN ÈDÈ","Pín lórí WhatsApp","Ń dúró","A ṣí ✓","ń gbà","ó parí","Ikanni Tuntun","àwọn ìgbà tuntun · wọlé"],
-    ig:["faịlụ kacha mma · ereghị ya · @fearlessffx","KACHA MMA · 70% · AHỤGHỊ","Faịlụ Drag<br>Headshot","na-ebugo ugbu a","MEGHE ỌDỊNMA","Kekọrịta saịtị a ugboro 2 na WhatsApp","Kekọrịta 1","Kekọrịta 2","⚠ <b>a ga-achọpụta nkekọrịta ụgha</b>","Budata Faịlụ","Ntuziaka Nhazi","Detuo Paswọọdụ","Soro Ọwa Niile","Isi Ọwa","@fearlessffx · faịlụ + mmelite","Ọwa nke Abụọ","ndabere · ọzọ drops","Ọwa nke Atọ","ntuziaka · nkuzi","© 2026 · ikike niile","Na-akwado Nbudata","FAỊLỤ ANỊGHỊ ARỤ ỌRỤ","<b>Achọpụtara nkekọrịta ụgha.</b><br>Ezipụghị njikọ na WhatsApp.","Iji dozie, kekọrịta njikọ ọzọ ma zipu ya.","Nwaa Ọzọ","HỌRỌ ASỤSỤ","Kekọrịta na WhatsApp","Na-eche","Emeghere ✓","na-ebugo","emechara","Ọwa Ọhụrụ","drops ọhụrụ · banye ugbu a"],
-    fr:["fichier premium · ne pas vendre · @fearlessffx","PREMIUM · 70% · INDÉTECTÉ","Fichier Drag<br>Headshot Premium","téléchargement en cours","DÉBLOQUER LE CONTENU","Partagez ce site 2 fois sur WhatsApp pour débloquer le fichier","Partage 1","Partage 2","⚠ <b>les faux partages seront détectés</b> — si vous partagez sans envoyer le lien, le fichier ne fonctionnera pas","Télécharger","Guide d'installation","Copier le mot de passe","Suivre toutes les chaînes","Chaîne principale","@fearlessffx · fichiers + mises à jour","Deuxième chaîne","sauvegarde · plus de drops","Troisième chaîne","guides · tutoriels","© 2026 · tous droits réservés","Préparation du téléchargement","FICHIER NE FONCTIONNE PAS","<b>Faux partage détecté.</b><br>Le lien n'a pas été envoyé sur WhatsApp.","Pour corriger, partagez à nouveau le lien et envoyez-le.","Réessayer","CHOISIR LA LANGUE","Partager sur WhatsApp","Patientez","Débloqué ✓","téléchargement","terminé","Nouvelle Chaîne","derniers drops · rejoindre"],
-    es:["archivo premium · no vender · @fearlessffx","PREMIUM · 70% · INDETECTABLE","Archivo Drag<br>Headshot Premium","descargando ahora","DESBLOQUEAR CONTENIDO","Comparte este sitio 2 veces en WhatsApp","Compartir 1","Compartir 2","⚠ <b>las comparticiones falsas serán detectadas</b>","Descargar Archivo","Guía de Instalación","Copiar Contraseña","Seguir Todos los Canales","Canal Principal","@fearlessffx · archivos + actualizaciones","Segundo Canal","respaldo · más drops","Tercer Canal","guías · tutoriales","© 2026 · todos los derechos reservados","Preparando Descarga","ARCHIVO NO FUNCIONA","<b>Compartición falsa detectada.</b><br>El enlace no fue enviado en WhatsApp.","Para arreglar, comparte el enlace otra vez y envíalo.","Intentar de Nuevo","SELECCIONAR IDIOMA","Compartir en WhatsApp","Esperando","Desbloqueado ✓","descargando","listo","Canal Nuevo","últimos drops · unirse"],
-    pt:["arquivo premium · não venda · @fearlessffx","PREMIUM · 70% · INDETECTÁVEL","Arquivo Drag<br>Headshot Premium","baixando agora","DESBLOQUEAR CONTEÚDO","Compartilhe este site 2 vezes no WhatsApp","Compartilhar 1","Compartilhar 2","⚠ <b>compartilhamentos falsos serão detectados</b>","Baixar Arquivo","Guia de Instalação","Copiar Senha","Seguir Todos os Canais","Canal Principal","@fearlessffx · arquivos + atualizações","Segundo Canal","backup · mais drops","Terceiro Canal","guias · tutoriais","© 2026 · todos os direitos reservados","Preparando Download","ARQUIVO NÃO FUNCIONA","<b>Compartilhamento falso detectado.</b><br>O link não foi enviado no WhatsApp.","Para corrigir, compartilhe o link novamente e envie.","Tentar de Novo","SELECIONAR IDIOMA","Compartilhar no WhatsApp","Aguardando","Desbloqueado ✓","baixando","concluído","Novo Canal","últimos drops · entrar"],
-    ar:["ملف مميز · لا تبيع · @fearlessffx","مميز · 70% · غير مكتشف","ملف دراج<br>هيدشوت مميز","يتم التنزيل الآن","فتح المحتوى","شارك هذا الموقع مرتين على واتساب","شارك 1","شارك 2","⚠ <b>سيتم كشف المشاركات المزيفة</b>","تحميل الملف","دليل التثبيت","نسخ كلمة المرور","تابع كل القنوات","القناة الرئيسية","@fearlessffx · الملفات + التحديثات","القناة الثانية","نسخة احتياطية · المزيد","القناة الثالثة","أدلة · دروس","© 2026 · جميع الحقوق محفوظة","جاري التحضير للتنزيل","الملف لا يعمل","<b>تم كشف مشاركة مزيفة.</b><br>لم يتم إرسال الرابط.","لإصلاح ذلك، شارك الرابط مرة أخرى.","حاول مرة أخرى","اختر اللغة","شارك على واتساب","في الانتظار","تم الفتح ✓","يتم التنزيل","انتهى","قناة جديدة","آخر التنزيلات · انضم"],
-    ur:["پریمیم فائل · نہ بیچیں · @fearlessffx","پریمیم · 70% · ان ڈیٹیکٹڈ","پریمیم ڈریگ<br>ہیڈ شاٹ فائل","ابھی ڈاؤن لوڈ ہو رہا ہے","مواد کھولیں","فائل کھولنے کے لیے اس سائٹ کو WhatsApp پر 2 بار شیئر کریں","شیئر 1","شیئر 2","⚠ <b>جعلی شیئر پکڑے جائیں گے</b> — لنک بھیجے بغیر شیئر کیا تو فائل کام نہیں کرے گی","فائل ڈاؤن لوڈ","سیٹ اپ گائیڈ","پاس ورڈ کاپی","تمام چینلز فالو کریں","مین چینل","@fearlessffx · فائلیں + اپڈیٹس","دوسرا چینل","بیک اپ · مزید ڈراپس","تیسرا چینل","گائیڈز · ٹیوٹوریلز","© 2026 · جملہ حقوق محفوظ","ڈاؤن لوڈ تیار ہو رہا ہے","فائل کام نہیں کر رہی","<b>جعلی شیئر پکڑا گیا۔</b><br>WhatsApp پر لنک نہیں بھیجا گیا۔","ٹھیک کرنے کے لیے، لنک دوبارہ شیئر کریں اور بھیجیں۔","دوبارہ کوشش","زبان منتخب کریں","WhatsApp پر شیئر کریں","انتظار","کھل گیا ✓","ڈاؤن لوڈ","ہو گیا","نیا چینل","تازہ ڈراپس · ابھی شامل ہوں"],
-    pa:["پریمیم فائل · نہ ویچو · @fearlessffx","پریمیم · 70% · ان ڈیٹیکٹڈ","پریمیم ڈریگ<br>ہیڈ شاٹ فائل","ہن ڈاؤن لوڈ ہو رہی اے","مواد کھولو","فائل کھولن لئی ایس سائٹ نوں WhatsApp تے 2 وار شیئر کرو","شیئر 1","شیئر 2","⚠ <b>نقلی شیئر پکڑے جان گے</b>","فائل ڈاؤن لوڈ","سیٹ اپ گائیڈ","پاس ورڈ کاپی","سارے چینل فالو کرو","مین چینل","@fearlessffx · فائلاں + اپڈیٹس","دوجا چینل","بیک اپ · ہور ڈراپس","تیجا چینل","گائیڈز · ٹیوٹوریلز","© 2026 · سارے حق محفوظ","ڈاؤن لوڈ تیار ہو رہی اے","فائل کم نہیں کر رہی","<b>نقلی شیئر پکڑی گئی۔</b><br>WhatsApp تے لنک نہیں بھیجیا گیا۔","ٹھیک کرن لئی، لنک دوبارہ شیئر کرو تے بھیجو۔","دوبارہ کوشش","زبان چنو","WhatsApp تے شیئر کرو","انتظار","کھل گیا ✓","ڈاؤن لوڈ","ہو گیا","نواں چینل","تازہ ڈراپس · ہن شامل ہوو"],
-    sd:["پريميم فائل · نه وڪڻو · @fearlessffx","پريميم · 70% · اڻڄاتل","پريميم ڊريگ<br>هيڊ شاٽ فائل","هينئر ڊائون لوڊ ٿي رهيو آهي","مواد کوليو","فائل کولڻ لاءِ هن سائيٽ کي WhatsApp تي 2 ڀيرا شيئر ڪريو","شيئر 1","شيئر 2","⚠ <b>جعلي شيئر پڪڙيا ويندا</b>","فائل ڊائون لوڊ","سيٽ اپ گائيڊ","پاسورڊ ڪاپي","سڀ چينل فالو ڪريو","مين چينل","@fearlessffx · فائلون + اپڊيٽس","ٻيو چينل","بيڪ اپ · وڌيڪ ڊراپس","ٽيون چينل","گائيڊ · ٽيوٽوريل","© 2026 · سڀ حق محفوظ","ڊائون لوڊ تيار ٿي رهيو آهي","فائل ڪم نٿي ڪري","<b>جعلي شيئر پکڙيو ويو.</b><br>WhatsApp تي لنڪ نه موڪليو ويو.","ٺيڪ ڪرڻ لاءِ، لنڪ ٻيهر شيئر ڪريو ۽ موڪليو.","ٻيهر ڪوشش","ٻولي چونڊيو","WhatsApp تي شيئر ڪريو","انتظار","کلجي ويو ✓","ڊائون لوڊ","ٿي ويو","نئون چينل","تازا ڊراپس · شامل ٿيو"],
-    hi:["प्रीमियम फ़ाइल · न बेचें · @fearlessffx","प्रीमियम · 70% · अनडिटेक्टेड","प्रीमियम ड्रैग<br>हेडशॉट फ़ाइल","अभी डाउनलोड हो रहा है","कंटेंट अनलॉक करें","फ़ाइल अनलॉक करने के लिए इस साइट को WhatsApp पर 2 बार शेयर करें","शेयर 1","शेयर 2","⚠ <b>फ़र्ज़ी शेयर पकड़े जाएँगे</b>","फ़ाइल डाउनलोड करें","सेटअप गाइड","पासवर्ड कॉपी करें","सभी चैनल फॉलो करें","मुख्य चैनल","@fearlessffx · फ़ाइलें + अपडेट","दूसरा चैनल","बैकअप · और ड्रॉप्स","तीसरा चैनल","गाइड · ट्यूटोरियल","© 2026 · सर्वाधिकार सुरक्षित","डाउनलोड तैयार हो रहा है","फ़ाइल काम नहीं कर रही","<b>फ़र्ज़ी शेयर पकड़ा गया।</b><br>WhatsApp पर लिंक नहीं भेजा गया।","ठीक करने के लिए, लिंक फिर से शेयर करें।","फिर कोशिश करें","भाषा चुनें","WhatsApp पर शेयर करें","प्रतीक्षा","अनलॉक ✓","डाउनलोड","हो गया","नया चैनल","नए ड्रॉप्स · अभी जुड़ें"],
-    tl:["premium file · huwag ibenta · @fearlessffx","PREMIUM · 70% · HINDI NATUKLASAN","Premium Drag<br>Headshot File","nagda-download ngayon","I-UNLOCK ANG CONTENT","I-share ang site na ito ng 2 beses sa WhatsApp","Share 1","Share 2","⚠ <b>mahuhuli ang pekeng share</b>","I-download ang File","Setup Guide","Kopyahin ang Password","I-follow Lahat ng Channel","Pangunahing Channel","@fearlessffx · files + updates","Pangalawang Channel","backup · mas maraming drops","Pangatlong Channel","mga gabay · tutorials","© 2026 · lahat ng karapatan","Inihahanda ang Download","HINDI GUMAGANA ANG FILE","<b>May pekeng share na natukoy.</b><br>Hindi naipadala ang link.","Para ayusin, i-share muli ang link at ipadala.","Subukan Muli","PUMILI NG WIKA","I-share sa WhatsApp","Naghihintay","Na-unlock ✓","nagda-download","tapos","Bagong Channel","pinakabagong drops · sumali"],
-    id:["file premium · jangan dijual · @fearlessffx","PREMIUM · 70% · TIDAK TERDETEKSI","File Drag<br>Headshot Premium","mengunduh sekarang","BUKA KONTEN","Bagikan situs ini 2 kali di WhatsApp","Bagikan 1","Bagikan 2","⚠ <b>bagikan palsu akan terdeteksi</b>","Unduh File","Panduan Instalasi","Salin Sandi","Ikuti Semua Saluran","Saluran Utama","@fearlessffx · file + pembaruan","Saluran Kedua","cadangan · lebih banyak drop","Saluran Ketiga","panduan · tutorial","© 2026 · semua hak dilindungi","Menyiapkan Unduhan","FILE TIDAK BERFUNGSI","<b>Bagikan palsu terdeteksi.</b><br>Tautan tidak dikirim di WhatsApp.","Untuk memperbaiki, bagikan tautan lagi.","Coba Lagi","PILIH BAHASA","Bagikan di WhatsApp","Menunggu","Terbuka ✓","mengunduh","selesai","Saluran Baru","drop terbaru · gabung"],
-    zh:["高级文件 · 请勿出售 · @fearlessffx","高级 · 70% · 未被检测","高级 Drag<br>爆头文件","正在下载","解锁内容","在 WhatsApp 上分享此网站 2 次","分享 1","分享 2","⚠ <b>虚假分享将被检测</b>","下载文件","设置指南","复制密码","关注所有频道","主频道","@fearlessffx · 文件 + 更新","第二频道","备份 · 更多掉落","第三频道","指南 · 教程","© 2026 · 版权所有","正在准备下载","文件无法使用","<b>检测到虚假分享。</b><br>链接未在 WhatsApp 上发送。","修复方法：再次分享链接并发送。","重试","选择语言","在 WhatsApp 分享","等待中","已解锁 ✓","下载中","完成","新频道","最新掉落 · 加入"]
+    en:["premium file · do not sell · @fearlessffx","PREMIUM · 70% · UNDETECTED","Premium Drag<br>Headshot File","downloading now","UNLOCK CONTENT","Share this site 2 times on WhatsApp to unlock the file","Share 1","Share 2","⚠ <b>fake shares will be detected</b> — if you share without sending the link, the file will not work","Download File","Setup Guide","Copy File Password","Follow All Channels","Main Channel","@fearlessffx · files + updates","Second Channel","backup · more drops","Third Channel","setup guides · tutorials","© 2026 · all rights reserved","Preparing Download","FILE NOT WORKING","<b>Fake share detected.</b><br>The link was not sent on WhatsApp.","To fix, share the site link again and actually send it.","Try Again","SELECT LANGUAGE","Share on WhatsApp","OPENING WHATSAPP IN","Unlocked ✓","downloading","done","New Channel","latest drops · join now","VERIFYING RETURN"],
+    ha:["fayil na musamman · kar a sayar · @fearlessffx","NA MUSAMMAN · 70% · BA A GANE","Fayil Na Drag<br>Headshot","saukarwa yanzu","BUƊE ABUN CIKI","Raba wannan shafi sau 2 a WhatsApp don buɗe fayil ɗin","Raba 1","Raba 2","⚠ <b>za a gano rabon karya</b> — idan ka raba ba tare da aika hanyar haɗi ba, fayil ɗin ba zai yi aiki ba","Sauke Fayil","Jagorar Saiti","Kwafi Kalmar Sirri","Bi Duk Tashoshi","Babban Tasha","@fearlessffx · fayiloli + sabuntawa","Tasha ta Biyu","madadin · ƙarin saukarwa","Tasha ta Uku","jagorar saituna · koyawa","© 2026 · duk haƙƙin mallaka","Ana Shirya Saukewa","FAYIL BA YA AIKI","<b>An gano rabon karya.</b><br>Ba a aika hanyar haɗi a WhatsApp ba.","Don gyara, sake raba hanyar shafin kuma aika shi.","Sake Gwadawa","ZAƁI HARSHE","Raba a WhatsApp","ANA BUƊE WHATSAPP CIKIN","An buɗe ✓","saukarwa","an gama","Sabuwar Tasha","sabbin drops · shiga yanzu","ANA TABBATARWA"],
+    yo:["fáìlì pàtàkì · má ṣe tà · @fearlessffx","PÀTÀKÌ · 70% · A KÒ RÍ I","Fáìlì Drag<br>Headshot","ń gbà ní báyìí","ṢÍ ÀKÓÓNÚ","Pín ojú òpó yìí lẹ́ẹ̀mejì lórí WhatsApp","Pín 1","Pín 2","⚠ <b>a ó rí àwọn ìpín èké</b> — tí o bá pín láìfi ọ̀nà ránṣẹ́, fáìlì náà kò ní ṣiṣẹ́","Gbà Fáìlì","Ìtọ́sọ́nà Ètò","Da Àkọ́kọ́ Ọ̀rọ̀ Ìkọ̀kọ̀","Tẹ̀lé Gbogbo Àwọn Ikanni","Ikanni Àkọ́kọ́","@fearlessffx · àwọn fáìlì + ìmúdójúìwọ̀n","Ikanni Kejì","àṣẹ̀yìn · àwọn ìgbà mìíràn","Ikanni Kẹta","àwọn ìtọ́sọ́nà · àwọn ẹ̀kọ́","© 2026 · gbogbo ẹ̀tọ́","Ń Múra Ìgbà","FÁÌLÌ KÒ ṢIṢẸ́","<b>A rí ìpín èké.</b><br>A kò fi ọ̀nà ránṣẹ́ lórí WhatsApp.","Láti ṣàtúnṣe, pín ọ̀nà ojú òpó lẹ́ẹ̀kan sí i.","Gbìyànjú Lẹ́ẹ̀kan Sí","YAN ÈDÈ","Pín lórí WhatsApp","Ń ṢÍ WHATSAPP NÍ","A ṣí ✓","ń gbà","ó parí","Ikanni Tuntun","àwọn ìgbà tuntun · wọlé","Ń RÍ ÌPADÀ"],
+    ig:["faịlụ kacha mma · ereghị ya · @fearlessffx","KACHA MMA · 70% · AHỤGHỊ","Faịlụ Drag<br>Headshot","na-ebugo ugbu a","MEGHE ỌDỊNMA","Kekọrịta saịtị a ugboro 2 na WhatsApp","Kekọrịta 1","Kekọrịta 2","⚠ <b>a ga-achọpụta nkekọrịta ụgha</b>","Budata Faịlụ","Ntuziaka Nhazi","Detuo Paswọọdụ","Soro Ọwa Niile","Isi Ọwa","@fearlessffx · faịlụ + mmelite","Ọwa nke Abụọ","ndabere · ọzọ drops","Ọwa nke Atọ","ntuziaka · nkuzi","© 2026 · ikike niile","Na-akwado Nbudata","FAỊLỤ ANỊGHỊ ARỤ ỌRỤ","<b>Achọpụtara nkekọrịta ụgha.</b><br>Ezipụghị njikọ na WhatsApp.","Iji dozie, kekọrịta njikọ ọzọ ma zipu ya.","Nwaa Ọzọ","HỌRỌ ASỤSỤ","Kekọrịta na WhatsApp","NA-EMEGHE WHATSAPP NA","Emeghere ✓","na-ebugo","emechara","Ọwa Ọhụrụ","drops ọhụrụ · banye ugbu a","NA-ELELE NLỌGHACHI"],
+    fr:["fichier premium · ne pas vendre · @fearlessffx","PREMIUM · 70% · INDÉTECTÉ","Fichier Drag<br>Headshot Premium","téléchargement en cours","DÉBLOQUER LE CONTENU","Partagez ce site 2 fois sur WhatsApp pour débloquer le fichier","Partage 1","Partage 2","⚠ <b>les faux partages seront détectés</b>","Télécharger","Guide d'installation","Copier le mot de passe","Suivre toutes les chaînes","Chaîne principale","@fearlessffx · fichiers + mises à jour","Deuxième chaîne","sauvegarde · plus de drops","Troisième chaîne","guides · tutoriels","© 2026 · tous droits réservés","Préparation du téléchargement","FICHIER NE FONCTIONNE PAS","<b>Faux partage détecté.</b><br>Le lien n'a pas été envoyé sur WhatsApp.","Pour corriger, partagez à nouveau le lien et envoyez-le.","Réessayer","CHOISIR LA LANGUE","Partager sur WhatsApp","OUVERTURE DE WHATSAPP DANS","Débloqué ✓","téléchargement","terminé","Nouvelle Chaîne","derniers drops · rejoindre","VÉRIFICATION DU RETOUR"],
+    es:["archivo premium · no vender · @fearlessffx","PREMIUM · 70% · INDETECTABLE","Archivo Drag<br>Headshot Premium","descargando ahora","DESBLOQUEAR CONTENIDO","Comparte este sitio 2 veces en WhatsApp","Compartir 1","Compartir 2","⚠ <b>las comparticiones falsas serán detectadas</b>","Descargar Archivo","Guía de Instalación","Copiar Contraseña","Seguir Todos los Canales","Canal Principal","@fearlessffx · archivos + actualizaciones","Segundo Canal","respaldo · más drops","Tercer Canal","guías · tutoriales","© 2026 · todos los derechos reservados","Preparando Descarga","ARCHIVO NO FUNCIONA","<b>Compartición falsa detectada.</b><br>El enlace no fue enviado en WhatsApp.","Para arreglar, comparte el enlace otra vez y envíalo.","Intentar de Nuevo","SELECCIONAR IDIOMA","Compartir en WhatsApp","ABRIENDO WHATSAPP EN","Desbloqueado ✓","descargando","listo","Canal Nuevo","últimos drops · unirse","VERIFICANDO RETORNO"],
+    pt:["arquivo premium · não venda · @fearlessffx","PREMIUM · 70% · INDETECTÁVEL","Arquivo Drag<br>Headshot Premium","baixando agora","DESBLOQUEAR CONTEÚDO","Compartilhe este site 2 vezes no WhatsApp","Compartilhar 1","Compartilhar 2","⚠ <b>compartilhamentos falsos serão detectados</b>","Baixar Arquivo","Guia de Instalação","Copiar Senha","Seguir Todos os Canais","Canal Principal","@fearlessffx · arquivos + atualizações","Segundo Canal","backup · mais drops","Terceiro Canal","guias · tutoriais","© 2026 · todos os direitos reservados","Preparando Download","ARQUIVO NÃO FUNCIONA","<b>Compartilhamento falso detectado.</b><br>O link não foi enviado no WhatsApp.","Para corrigir, compartilhe o link novamente e envie.","Tentar de Novo","SELECIONAR IDIOMA","Compartilhar no WhatsApp","ABRINDO WHATSAPP EM","Desbloqueado ✓","baixando","concluído","Novo Canal","últimos drops · entrar","VERIFICANDO RETORNO"],
+    ar:["ملف مميز · لا تبيع · @fearlessffx","مميز · 70% · غير مكتشف","ملف دراج<br>هيدشوت مميز","يتم التنزيل الآن","فتح المحتوى","شارك هذا الموقع مرتين على واتساب","شارك 1","شارك 2","⚠ <b>سيتم كشف المشاركات المزيفة</b>","تحميل الملف","دليل التثبيت","نسخ كلمة المرور","تابع كل القنوات","القناة الرئيسية","@fearlessffx · الملفات + التحديثات","القناة الثانية","نسخة احتياطية · المزيد","القناة الثالثة","أدلة · دروس","© 2026 · جميع الحقوق محفوظة","جاري التحضير للتنزيل","الملف لا يعمل","<b>تم كشف مشاركة مزيفة.</b><br>لم يتم إرسال الرابط.","لإصلاح ذلك، شارك الرابط مرة أخرى.","حاول مرة أخرى","اختر اللغة","شارك على واتساب","يتم فتح واتساب خلال","تم الفتح ✓","يتم التنزيل","انتهى","قناة جديدة","آخر التنزيلات · انضم","جاري التحقق من العودة"],
+    ur:["پریمیم فائل · نہ بیچیں · @fearlessffx","پریمیم · 70% · ان ڈیٹیکٹڈ","پریمیم ڈریگ<br>ہیڈ شاٹ فائل","ابھی ڈاؤن لوڈ ہو رہا ہے","مواد کھولیں","فائل کھولنے کے لیے اس سائٹ کو WhatsApp پر 2 بار شیئر کریں","شیئر 1","شیئر 2","⚠ <b>جعلی شیئر پکڑے جائیں گے</b>","فائل ڈاؤن لوڈ","سیٹ اپ گائیڈ","پاس ورڈ کاپی","تمام چینلز فالو کریں","مین چینل","@fearlessffx · فائلیں + اپڈیٹس","دوسرا چینل","بیک اپ · مزید ڈراپس","تیسرا چینل","گائیڈز · ٹیوٹوریلز","© 2026 · جملہ حقوق محفوظ","ڈاؤن لوڈ تیار ہو رہا ہے","فائل کام نہیں کر رہی","<b>جعلی شیئر پکڑا گیا۔</b><br>WhatsApp پر لنک نہیں بھیجا گیا۔","ٹھیک کرنے کے لیے، لنک دوبارہ شیئر کریں اور بھیجیں۔","دوبارہ کوشش","زبان منتخب کریں","WhatsApp پر شیئر کریں","WhatsApp کھل رہا ہے","کھل گیا ✓","ڈاؤن لوڈ","ہو گیا","نیا چینل","تازہ ڈراپس · ابھی شامل ہوں","واپسی کی تصدیق"],
+    pa:["پریمیم فائل · نہ ویچو · @fearlessffx","پریمیم · 70% · ان ڈیٹیکٹڈ","پریمیم ڈریگ<br>ہیڈ شاٹ فائل","ہن ڈاؤن لوڈ ہو رہی اے","مواد کھولو","فائل کھولن لئی ایس سائٹ نوں WhatsApp تے 2 وار شیئر کرو","شیئر 1","شیئر 2","⚠ <b>نقلی شیئر پکڑے جان گے</b>","فائل ڈاؤن لوڈ","سیٹ اپ گائیڈ","پاس ورڈ کاپی","سارے چینل فالو کرو","مین چینل","@fearlessffx · فائلاں + اپڈیٹس","دوجا چینل","بیک اپ · ہور ڈراپس","تیجا چینل","گائیڈز · ٹیوٹوریلز","© 2026 · سارے حق محفوظ","ڈاؤن لوڈ تیار ہو رہی اے","فائل کم نہیں کر رہی","<b>نقلی شیئر پکڑی گئی۔</b><br>WhatsApp تے لنک نہیں بھیجیا گیا۔","ٹھیک کرن لئی، لنک دوبارہ شیئر کرو تے بھیجو۔","دوبارہ کوشش","زبان چنو","WhatsApp تے شیئر کرو","WhatsApp کھل رہیا اے","کھل گیا ✓","ڈاؤن لوڈ","ہو گیا","نواں چینل","تازہ ڈراپس · ہن شامل ہوو","واپسی دی تصدیق"],
+    sd:["پريميم فائل · نه وڪڻو · @fearlessffx","پريميم · 70% · اڻڄاتل","پريميم ڊريگ<br>هيڊ شاٽ فائل","هينئر ڊائون لوڊ ٿي رهيو آهي","مواد کوليو","فائل کولڻ لاءِ هن سائيٽ کي WhatsApp تي 2 ڀيرا شيئر ڪريو","شيئر 1","شيئر 2","⚠ <b>جعلي شيئر پڪڙيا ويندا</b>","فائل ڊائون لوڊ","سيٽ اپ گائيڊ","پاسورڊ ڪاپي","سڀ چينل فالو ڪريو","مين چينل","@fearlessffx · فائلون + اپڊيٽس","ٻيو چينل","بيڪ اپ · وڌيڪ ڊراپس","ٽيون چينل","گائيڊ · ٽيوٽوريل","© 2026 · سڀ حق محفوظ","ڊائون لوڊ تيار ٿي رهيو آهي","فائل ڪم نٿي ڪري","<b>جعلي شيئر پکڙيو ويو.</b><br>WhatsApp تي لنڪ نه موڪليو ويو.","ٺيڪ ڪرڻ لاءِ، لنڪ ٻيهر شيئر ڪريو ۽ موڪليو.","ٻيهر ڪوشش","ٻولي چونڊيو","WhatsApp تي شيئر ڪريو","WhatsApp کلي رهيو آهي","کلجي ويو ✓","ڊائون لوڊ","ٿي ويو","نئون چينل","تازا ڊراپس · شامل ٿيو","واپسي جي تصديق"],
+    hi:["प्रीमियम फ़ाइल · न बेचें · @fearlessffx","प्रीमियम · 70% · अनडिटेक्टेड","प्रीमियम ड्रैग<br>हेडशॉट फ़ाइल","अभी डाउनलोड हो रहा है","कंटेंट अनलॉक करें","फ़ाइल अनलॉक करने के लिए इस साइट को WhatsApp पर 2 बार शेयर करें","शेयर 1","शेयर 2","⚠ <b>फ़र्ज़ी शेयर पकड़े जाएँगे</b>","फ़ाइल डाउनलोड करें","सेटअप गाइड","पासवर्ड कॉपी करें","सभी चैनल फॉलो करें","मुख्य चैनल","@fearlessffx · फ़ाइलें + अपडेट","दूसरा चैनल","बैकअप · और ड्रॉप्स","तीसरा चैनल","गाइड · ट्यूटोरियल","© 2026 · सर्वाधिकार सुरक्षित","डाउनलोड तैयार हो रहा है","फ़ाइल काम नहीं कर रही","<b>फ़र्ज़ी शेयर पकड़ा गया।</b><br>WhatsApp पर लिंक नहीं भेजा गया।","ठीक करने के लिए, लिंक फिर से शेयर करें।","फिर कोशिश करें","भाषा चुनें","WhatsApp पर शेयर करें","WhatsApp खुल रहा है","अनलॉक ✓","डाउनलोड","हो गया","नया चैनल","नए ड्रॉप्स · अभी जुड़ें","वापसी की पुष्टि"],
+    tl:["premium file · huwag ibenta · @fearlessffx","PREMIUM · 70% · HINDI NATUKLASAN","Premium Drag<br>Headshot File","nagda-download ngayon","I-UNLOCK ANG CONTENT","I-share ang site na ito ng 2 beses sa WhatsApp","Share 1","Share 2","⚠ <b>mahuhuli ang pekeng share</b>","I-download ang File","Setup Guide","Kopyahin ang Password","I-follow Lahat ng Channel","Pangunahing Channel","@fearlessffx · files + updates","Pangalawang Channel","backup · mas maraming drops","Pangatlong Channel","mga gabay · tutorials","© 2026 · lahat ng karapatan","Inihahanda ang Download","HINDI GUMAGANA ANG FILE","<b>May pekeng share na natukoy.</b><br>Hindi naipadala ang link.","Para ayusin, i-share muli ang link at ipadala.","Subukan Muli","PUMILI NG WIKA","I-share sa WhatsApp","BUBUKAS ANG WHATSAPP SA","Na-unlock ✓","nagda-download","tapos","Bagong Channel","pinakabagong drops · sumali","TINITINGNAN ANG PAGBALIK"],
+    id:["file premium · jangan dijual · @fearlessffx","PREMIUM · 70% · TIDAK TERDETEKSI","File Drag<br>Headshot Premium","mengunduh sekarang","BUKA KONTEN","Bagikan situs ini 2 kali di WhatsApp","Bagikan 1","Bagikan 2","⚠ <b>bagikan palsu akan terdeteksi</b>","Unduh File","Panduan Instalasi","Salin Sandi","Ikuti Semua Saluran","Saluran Utama","@fearlessffx · file + pembaruan","Saluran Kedua","cadangan · lebih banyak drop","Saluran Ketiga","panduan · tutorial","© 2026 · semua hak dilindungi","Menyiapkan Unduhan","FILE TIDAK BERFUNGSI","<b>Bagikan palsu terdeteksi.</b><br>Tautan tidak dikirim di WhatsApp.","Untuk memperbaiki, bagikan tautan lagi.","Coba Lagi","PILIH BAHASA","Bagikan di WhatsApp","MEMBUKA WHATSAPP DALAM","Terbuka ✓","mengunduh","selesai","Saluran Baru","drop terbaru · gabung","MEMVERIFIKASI KEMBALI"],
+    zh:["高级文件 · 请勿出售 · @fearlessffx","高级 · 70% · 未被检测","高级 Drag<br>爆头文件","正在下载","解锁内容","在 WhatsApp 上分享此网站 2 次","分享 1","分享 2","⚠ <b>虚假分享将被检测</b>","下载文件","设置指南","复制密码","关注所有频道","主频道","@fearlessffx · 文件 + 更新","第二频道","备份 · 更多掉落","第三频道","指南 · 教程","© 2026 · 版权所有","正在准备下载","文件无法使用","<b>检测到虚假分享。</b><br>链接未在 WhatsApp 上发送。","修复方法：再次分享链接并发送。","重试","选择语言","在 WhatsApp 分享","即将打开 WHATSAPP","已解锁 ✓","下载中","完成","新频道","最新掉落 · 加入","正在验证返回"]
   };
 
-  var KEYS=['warnbar','badge','title','downloading','unlockTitle','unlockSub','share1','share2','warnUnlock','download','setup','copyPass','followChannels','mainCh','mainSub','secondCh','secondSub','thirdCh','thirdSub','rights','dlTitle','fakeTitle','fakeBody','fakeBody2','tryAgain','langTitle','shareBtn','waiting','unlocked','downloadingWord','doneWord','fourthCh','fourthSub'];
+  var KEYS=['warnbar','badge','title','downloading','unlockTitle','unlockSub','share1','share2','warnUnlock','download','setup','copyPass','followChannels','mainCh','mainSub','secondCh','secondSub','thirdCh','thirdSub','rights','dlTitle','fakeTitle','fakeBody','fakeBody2','tryAgain','langTitle','shareBtn','openingWa','unlocked','downloadingWord','doneWord','fourthCh','fourthSub','verifying'];
   var EL={warnbar:'warnbar',badge:'badge',title:'title',downloading:'downloading',unlockTitle:'unlockTitle',unlockSub:'unlockSub',share1:'share1',share2:'share2',warnUnlock:'warnUnlock',download:'downloadTxt',setup:'setupTxt',copyPass:'copyPassText',followChannels:'followChannels',mainCh:'mainCh',mainSub:'mainSub',secondCh:'secondCh',secondSub:'secondSub',thirdCh:'thirdCh',thirdSub:'thirdSub',rights:'rights',dlTitle:'dlTitle',fakeTitle:'fakeTitle',fakeBody:'fakeBody',fakeBody2:'fakeBody2',tryAgain:'fakeBtn',langTitle:'langTitle',fourthCh:'fourthCh',fourthSub:'fourthSub'};
 
   var currentLang='en';
@@ -519,6 +533,9 @@
     if(cur) cur.textContent = currentLang.toUpperCase();
     var info = LANGS.find(function(L){return L.c===currentLang;});
     document.body.dir = (info && info.rtl) ? 'rtl' : 'ltr';
+    // refresh verify text too
+    var vt = document.getElementById('verifyText');
+    if(vt && !vt.dataset.locked) vt.textContent = t('verifying');
     updateUnlockUI();
   }
 
@@ -596,6 +613,7 @@
     toastT=setTimeout(function(){toast.classList.remove('show');},2400);
   }
 
+  /* ===== GATE ===== */
   var gateOverlay=document.getElementById('gateOverlay');
   var gateJoinBtn=document.getElementById('gateJoinBtn');
   var gateCloseBtn=document.getElementById('gateCloseBtn');
@@ -609,7 +627,7 @@
   gateJoinBtn.onclick=function(){
     if(gateTimerActive||gateJoined) return;
     gateTimerActive=true;
-    window.open(GATE_CHANNEL,'_blank','noopener');
+    location.href = GATE_CHANNEL;
     var remaining=Math.ceil(GATE_DELAY_MS/1000);
     gateCloseText.textContent='WAIT '+remaining+'s';
     var iv=setInterval(function(){
@@ -633,6 +651,7 @@
     try{ localStorage.setItem('ffx_gate','1'); }catch(e){}
   };
 
+  /* ===== SHARE UNLOCK ===== */
   var unlockBtn=document.getElementById('unlockShareBtn');
   var unlockText=document.getElementById('unlockShareText');
   var step1=document.getElementById('step1');
@@ -640,11 +659,21 @@
   var line1=document.getElementById('line1');
   var unlockPanel=document.getElementById('unlockPanel');
   var fakeOverlay=document.getElementById('fakeOverlay');
+  var verifyBar=document.getElementById('verifyBar');
+  var verifyText=document.getElementById('verifyText');
+  var verifyNum=document.getElementById('verifyNum');
 
   var shareCount=0;
   try{ shareCount=parseInt(localStorage.getItem('ffx_shares')||'0',10)||0; }catch(e){}
   if(shareCount>2) shareCount=2;
   if(shareCount<0) shareCount=0;
+
+  // pending = we opened WhatsApp, waiting for return
+  var pendingShare=false;
+  var shareOpenedAt=0;
+  var preOpenCountdown=null;
+  var verifyCountdown=null;
+  var buttonBusy=false;
 
   var shareText="🔥 PREMIUM DRAG HEADSHOT FILE v1.0.0 — free drop from @fearlessffx\n\n"+SITE_URL+"\n\nFollow: "+PASS_LINK;
 
@@ -660,7 +689,7 @@
       unlockBtn.style.background='linear-gradient(135deg,#128c4b,#0a5c32)';
       unlockContent();
     } else {
-      unlockText.textContent=t('shareBtn')+' ('+shareCount+'/2)';
+      if(!buttonBusy) unlockText.textContent=t('shareBtn')+' ('+shareCount+'/2)';
     }
   }
 
@@ -677,49 +706,91 @@
     if(unlockPanel) unlockPanel.style.display='none';
   }
 
-  var shareOpenedAt=0, pendingShare=false, shareTimerActive=false;
-
+  /* STEP 1: user taps share → 5s pre-countdown on button → redirect to WhatsApp in SAME tab */
   unlockBtn.onclick=function(){
-    if(shareCount>=2||shareTimerActive) return;
-    shareTimerActive=true;
-    shareOpenedAt=Date.now();
-    pendingShare=true;
-
-    unlockBtn.classList.add('timing');
-    var remaining=Math.ceil(SHARE_DELAY_MS/1000);
-    var origText=unlockText.textContent;
-    unlockText.textContent=t('waiting')+' '+remaining+'s...';
-
-    var countdown=setInterval(function(){
-      remaining--;
-      if(remaining<=0){
-        clearInterval(countdown);
-        unlockText.textContent=origText;
-        unlockBtn.classList.remove('timing');
-        shareTimerActive=false;
-        // open WhatsApp share sheet — friends + groups
-        window.open('https://wa.me/?text='+encodeURIComponent(shareText),'_blank','noopener');
-      } else {
-        unlockText.textContent=t('waiting')+' '+remaining+'s...';
-      }
-    },1000);
+    if(shareCount>=2 || buttonBusy || pendingShare) return;
+    buttonBusy=true;
+    shareTimer(false);
   };
 
-  document.addEventListener('visibilitychange',function(){
-    if(document.visibilityState==='visible' && pendingShare){
-      pendingShare=false;
-      var elapsed = Date.now()-shareOpenedAt;
-      // too fast = fake
-      if(elapsed < MIN_REAL_SHARE_MS){
-        fakeOverlay.classList.add('show');
-        return;
+  function shareTimer(isVerify){
+    if(preOpenCountdown){ clearInterval(preOpenCountdown); preOpenCountdown=null; }
+
+    unlockBtn.classList.add('timing');
+    var remaining = Math.ceil(SHARE_DELAY_MS/1000);
+    renderCountdown(remaining);
+
+    preOpenCountdown = setInterval(function(){
+      remaining--;
+      if(remaining <= 0){
+        clearInterval(preOpenCountdown);
+        preOpenCountdown=null;
+        // keep button locked during redirect window
+        unlockText.textContent = t('openingWa')+' 1…';
+        // go to WhatsApp in the SAME tab — no popup blocker
+        pendingShare = true;
+        shareOpenedAt = Date.now();
+        location.href = 'https://wa.me/?text='+encodeURIComponent(shareText);
+      } else {
+        renderCountdown(remaining);
       }
-      shareCount++;
-      try{ localStorage.setItem('ffx_shares',String(shareCount)); }catch(e){}
+    },1000);
+  }
+
+  function renderCountdown(n){
+    // big number inside the button
+    unlockText.innerHTML = t('openingWa') + ' <span class="cd-num">'+n+'</span>';
+  }
+
+  /* STEP 2: user returns → 5s verify countdown in verify-bar → circle fills */
+  document.addEventListener('visibilitychange', function(){
+    if(document.visibilityState !== 'visible') return;
+    if(!pendingShare) return;
+
+    var elapsed = Date.now() - shareOpenedAt;
+    pendingShare = false;
+
+    // too fast — they never left
+    if(elapsed < 1500){
+      buttonBusy = false;
+      unlockBtn.classList.remove('timing');
+      fakeOverlay.classList.add('show');
       updateUnlockUI();
-      if(shareCount===1) showToast('1 of 2 — share again');
-      else if(shareCount>=2) showToast(t('unlocked'));
+      return;
     }
+
+    // show verifying bar, run 5s countdown, then credit share
+    var remaining = Math.ceil(VERIFY_DELAY_MS/1000);
+    verifyBar.classList.remove('done');
+    verifyText.textContent = t('verifying');
+    verifyNum.textContent = remaining;
+    verifyBar.classList.add('show');
+
+    if(verifyCountdown) clearInterval(verifyCountdown);
+    verifyCountdown = setInterval(function(){
+      remaining--;
+      if(remaining <= 0){
+        clearInterval(verifyCountdown);
+        verifyCountdown = null;
+        verifyBar.classList.add('done');
+        verifyText.textContent = t('unlocked');
+        verifyNum.textContent = '✓';
+
+        // credit the share
+        shareCount++;
+        try{ localStorage.setItem('ffx_shares',String(shareCount)); }catch(e){}
+        buttonBusy = false;
+        unlockBtn.classList.remove('timing');
+        updateUnlockUI();
+
+        if(shareCount===1) showToast('1 of 2 — share again');
+        else if(shareCount>=2) showToast(t('unlocked'));
+
+        setTimeout(function(){ verifyBar.classList.remove('show','done'); }, 2000);
+      } else {
+        verifyNum.textContent = remaining;
+      }
+    },1000);
   });
 
   document.getElementById('fakeBtn').onclick=function(){
@@ -730,6 +801,7 @@
   if(shareCount>=2){ unlockPanel.style.display='none'; unlockContent(); }
   else updateUnlockUI();
 
+  /* ===== DOWNLOAD ===== */
   var dlBtn=document.getElementById('downloadBtn');
   var dlOverlay=document.getElementById('dlOverlay');
   var dlBar=document.getElementById('dlBar');
@@ -752,8 +824,8 @@
         dlStatus.textContent=t('doneWord');
         clearInterval(iv);
         setTimeout(function(){
-          window.open(FILE_URL,'_blank','noopener');
           dlOverlay.classList.remove('show');
+          location.href = FILE_URL;
           dlRunning=false;
         },500);
         return;
@@ -764,6 +836,7 @@
     },200);
   };
 
+  /* ===== COPY PASSWORD ===== */
   var copyBtn=document.getElementById('copyPass');
   var copyText=document.getElementById('copyPassText');
   copyBtn.onclick=function(){
@@ -792,6 +865,7 @@
     if(shareCount<2) e.preventDefault();
   };
 
+  /* ===== CHAT ===== */
   var fab=document.getElementById('chatFab');
   var panel=document.getElementById('chatPanel');
   var closeBtn=document.getElementById('chatClose');
@@ -842,7 +916,7 @@
     {k:['password','pass','key'],r:"🔐 File password is in my main channel.\n\nTap 'Copy File Password' after 2 real shares — it copies the channel link. Look for the pinned post.\n\n@fearlessffx"},
     {k:['install','installation','guide','how'],r:"⚙️ Install steps:\n\n1. Download the .7z\n2. Extract with ZArchiver\n3. Open setup guide on the page\n4. Follow exactly\n\nTell me which step fails."},
     {k:['download','link','file','mediafire'],r:"📥 The download button unlocks after 2 WhatsApp shares.\n\nThen tap it — progress runs, MediaFire opens."},
-    {k:['share','locked','unlock','timer','5 sec','five'],r:"🔓 To unlock:\n\n1. Tap green Share button\n2. Wait the 5-second timer\n3. WhatsApp opens — send to any chat\n4. Come back, tap again\n5. After 2 real shares — unlocked\n\nFake shares are detected."},
+    {k:['share','locked','unlock','timer','5 sec','five'],r:"🔓 To unlock:\n\n1. Tap green Share button\n2. Wait the 5-second countdown\n3. WhatsApp opens — send to any chat\n4. Come back, wait the 5-second verify countdown\n5. After 2 real shares — unlocked\n\nFake shares are detected."},
     {k:['ban','safe','risk','detect'],r:"🛡️ v1.0.0 premium build. Offline/training = safe. Online = risk.\n\nDon't use on ranked or live."},
     {k:['drag','headshot','hs'],r:"🎯 Drag headshot locks head bone on drag.\n\nFile contains drag_core, headshot_lock, recoil 0.00, spread 0.00, aim assist."},
     {k:['device','android','ios','phone'],r:"📱 Android only. No root needed.\n\niOS not supported."},
