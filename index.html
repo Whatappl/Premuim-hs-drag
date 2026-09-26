@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PREMIUM DRAG HEADSHOT FILE — v1.0.0</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  :root { --red:#ff0033; --glow:#ff3366; --bg:#050505; --green:#25d366; --border:rgba(255,0,51,0.55); }
+  html, body { background:var(--bg); color:#fff; font-family:'Segoe UI', system-ui, sans-serif; min-height:100vh; overflow-x:hidden; }
+  body[dir="rtl"] { direction:rtl; text-align:right; }
+  body[dir="rtl"] .actions,
+  body[dir="rtl"] .stats { direction:rtl; }
+
+  #bg { position:fixed; inset:0; z-index:-3; background:radial-gradient(circle at 20% 20%, rgba(255,0,51,.2), transparent 45%), radial-gradient(circle at 80% 70%, rgba(255,51,102,.15), transparent 45%), #050505; }
+  #grid { position:fixed; inset:0; z-index:-2; background-image:linear-gradient(rgba(255,0,51,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,0,51,.08) 1px, transparent 1px); background-size:44px 44px; animation:gs 30s linear infinite; }
+  @keyframes gs { from { background-position:0 0; } to { background-position:44px 44px; } }
+  canvas#stars { position:fixed; inset:0; z-index:-1; pointer-events:none; }
+
+  .warnbar { background:linear-gradient(90deg,#ff0033,#b3001f,#ff0033); background-size:200% 100%; animation:bs 3s linear infinite; text-align:center; font-size:12px; font-weight:800; letter-spacing:2px; padding:6px 0; text-transform:uppercase; }
+  @keyframes bs { from { background-position:0 0; } to { background-position:200% 0; } }
+
+  header { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid var(--border); backdrop-filter:blur(12px); background:rgba(5,0,0,.6); position:sticky; top:0; z-index:20; flex-wrap:wrap; gap:8px; }
+  .brand { display:flex; align-items:center; gap:10px; font-weight:900; letter-spacing:1px; font-size:13px; text-transform:uppercase; }
+  .brand img { width:34px; height:34px; border-radius:50%; border:2px solid var(--red); box-shadow:0 0 12px var(--glow); }
+  .brand span { background:linear-gradient(90deg,#fff,#ff3366,#fff); background-size:200% 100%; -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; animation:sh 3s linear infinite; }
+  @keyframes sh { from { background-position:0 0; } to { background-position:200% 0; } }
+  .header-right { display:flex; align-items:center; gap:8px; font-size:11px; letter-spacing:1px; flex-wrap:wrap; }
+  .clock { display:flex; align-items:center; gap:6px; border:1px solid rgba(255,0,51,.4); background:rgba(255,0,51,.06); padding:5px 10px; border-radius:20px; color:#ff8899; font-family:ui-monospace, monospace; font-weight:700; }
+  .clock .time { color:#fff; }
+  .live-dot { width:8px; height:8px; border-radius:50%; background:var(--green); box-shadow:0 0 10px var(--green); display:inline-block; animation:lp 1.4s ease-in-out infinite; }
+  @keyframes lp { 0%,100% { box-shadow:0 0 6px var(--green); } 50% { box-shadow:0 0 18px var(--green); } }
+  .ver { color:#ff5577; display:flex; align-items:center; gap:6px; }
+  .lang-btn { display:flex; align-items:center; gap:5px; border:1px solid var(--red); background:rgba(255,0,51,.1); padding:5px 10px; border-radius:20px; color:#fff; font-family:inherit; font-size:11px; font-weight:800; letter-spacing:1px; cursor:pointer; text-transform:uppercase; }
+  .lang-btn .cur { color:#ff8899; }
+
+  .hero { text-align:center; padding:44px 20px 22px; }
+  .badge { display:inline-block; border:1px solid var(--red); color:#ff5577; font-size:11px; letter-spacing:3px; padding:6px 16px; border-radius:20px; margin-bottom:20px; text-transform:uppercase; box-shadow:0 0 18px rgba(255,0,51,.35) inset; }
+  h1 { font-size:clamp(24px, 8vw, 48px); font-weight:900; letter-spacing:1px; line-height:1.12; text-transform:uppercase; background:linear-gradient(90deg,#ff0033,#fff,#ff3366,#fff,#ff0033); background-size:300% 100%; -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; animation:sh 4s linear infinite; filter:drop-shadow(0 0 20px rgba(255,0,51,.55)); word-break:break-word; }
+  .typed { margin-top:14px; font-size:14px; color:#ff8899; letter-spacing:2px; font-family:ui-monospace, monospace; min-height:22px; }
+  .cursor { display:inline-block; width:8px; height:16px; background:#ff0033; vertical-align:-2px; animation:bk .8s steps(1) infinite; }
+  @keyframes bk { 50% { opacity:0; } }
+  .live-count { display:inline-flex; align-items:center; gap:8px; margin-top:18px; padding:8px 16px; border-radius:20px; background:rgba(37,211,102,.08); border:1px solid rgba(37,211,102,.4); font-size:12px; color:#88ffb3; letter-spacing:1px; font-weight:700; text-transform:uppercase; }
+  .live-count .num { color:#fff; font-size:15px; font-weight:900; }
+
+  .unlock-panel { max-width:720px; margin:30px 18px 0; padding:22px; background:linear-gradient(135deg, rgba(37,211,102,.08), rgba(255,0,51,.06)); border:1px solid rgba(37,211,102,.4); border-radius:16px; text-align:center; }
+  .unlock-title { font-size:13px; letter-spacing:3px; text-transform:uppercase; color:#88ffb3; font-weight:800; margin-bottom:6px; display:flex; align-items:center; justify-content:center; gap:8px; }
+  .unlock-sub { font-size:12px; color:#ffe0e6; opacity:.85; margin-bottom:16px; }
+  .unlock-progress { display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:16px; }
+  .unlock-step { display:flex; flex-direction:column; align-items:center; gap:6px; font-size:10px; letter-spacing:1px; color:#885566; text-transform:uppercase; font-weight:800; }
+  .unlock-step .circle { width:34px; height:34px; border-radius:50%; border:2px solid rgba(255,0,51,.4); background:rgba(255,0,51,.08); display:flex; align-items:center; justify-content:center; font-size:14px; color:#ff5577; font-weight:900; transition:all .35s; }
+  .unlock-step.done .circle { border-color:var(--green); background:linear-gradient(135deg, var(--green), #0e7a3d); color:#fff; box-shadow:0 0 22px rgba(37,211,102,.75); }
+  .unlock-step.done .label { color:#88ffb3; }
+  .unlock-line { width:30px; height:2px; background:rgba(255,0,51,.3); margin-bottom:22px; transition:background .35s; }
+  .unlock-line.done { background:var(--green); box-shadow:0 0 10px var(--green); }
+  .unlock-btn { display:inline-flex; align-items:center; justify-content:center; gap:10px; padding:14px 22px; border-radius:12px; border:none; background:linear-gradient(135deg,#25d366,#0e7a3d); color:#fff; font-family:inherit; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; font-size:13px; cursor:pointer; box-shadow:0 0 24px rgba(37,211,102,.55); width:100%; max-width:340px; position:relative; overflow:hidden; }
+  .unlock-btn svg { width:18px; height:18px; fill:currentColor; }
+  .unlock-btn.timing { background:linear-gradient(135deg,#128c4b,#0a5c32) !important; pointer-events:none; }
+  .unlock-warn { margin-top:14px; padding:10px 14px; background:rgba(255,0,51,.08); border:1px solid rgba(255,0,51,.35); border-radius:10px; font-size:11px; color:#ff8899; letter-spacing:.5px; text-transform:uppercase; }
+  .unlock-warn b { color:#ff5577; }
+
+  .card { max-width:720px; margin:20px 18px 30px; padding:26px 22px; background:rgba(20,0,5,.75); border:1px solid var(--border); border-radius:16px; backdrop-filter:blur(10px); }
+  .preview { width:100%; border-radius:12px; border:1px solid rgba(255,0,51,.4); display:block; }
+  .stats { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin:22px 0; }
+  .pill { border:1px solid rgba(255,0,51,.4); background:rgba(255,0,51,.06); padding:6px 13px; border-radius:20px; font-size:11px; letter-spacing:1px; color:#ff8899; text-transform:uppercase; }
+  .actions { display:grid; gap:12px; margin-top:24px; }
+  .btn { display:flex; align-items:center; justify-content:center; gap:10px; padding:16px 18px; border-radius:12px; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; font-size:13px; text-decoration:none; position:relative; overflow:hidden; border:1px solid transparent; cursor:pointer; font-family:inherit; width:100%; color:inherit; }
+  .btn-primary { background:linear-gradient(135deg,#ff0033,#b3001f); color:#fff; box-shadow:0 0 20px rgba(255,0,51,.45); }
+  .btn-outline { background:rgba(255,255,255,.02); color:#ff5577; border:1px solid var(--border); }
+  .btn svg { width:18px; height:18px; fill:currentColor; flex-shrink:0; }
+  .btn.copied { background:linear-gradient(135deg, var(--green), #128c4b) !important; color:#fff !important; }
+  .btn.locked { filter:grayscale(.85) brightness(.6); cursor:not-allowed; opacity:.75; }
+  .btn.locked::before { content:"🔒"; position:absolute; right:16px; top:50%; transform:translateY(-50%); font-size:16px; }
+  body[dir="rtl"] .btn.locked::before { right:auto; left:16px; }
+
+  .channels { max-width:720px; margin:0 auto 40px; padding:0 18px; }
+  .channels h2 { font-size:13px; letter-spacing:3px; color:#ff5577; text-transform:uppercase; text-align:center; margin-bottom:18px; }
+  .ch-list { display:grid; gap:10px; }
+  .ch { display:flex; align-items:center; gap:12px; padding:14px 16px; border:1px solid rgba(255,0,51,.3); border-radius:12px; background:rgba(255,0,51,.04); text-decoration:none; color:#fff; }
+  .ch .dot { width:10px; height:10px; border-radius:50%; background:var(--green); box-shadow:0 0 12px var(--green); flex-shrink:0; }
+  .ch .name { font-size:13px; font-weight:700; }
+  .ch .sub { font-size:11px; color:#ff8899; margin-top:2px; }
+
+  /* join note under channels */
+  .join-note { max-width:720px; margin:20px auto 0; padding:20px 18px; background:linear-gradient(135deg, rgba(255,0,51,.08), rgba(37,211,102,.06)); border:1px solid rgba(255,0,51,.4); border-radius:14px; text-align:center; box-shadow:0 0 30px rgba(255,0,51,.15); }
+  .join-title { font-size:12px; letter-spacing:3px; text-transform:uppercase; color:#ff5577; font-weight:800; margin-bottom:14px; }
+  .join-items { display:grid; gap:10px; }
+  .join-item { display:flex; align-items:center; justify-content:center; gap:10px; padding:12px 14px; background:rgba(0,0,0,.35); border:1px solid rgba(37,211,102,.35); border-radius:10px; font-size:12px; font-weight:800; letter-spacing:1.5px; color:#88ffb3; text-transform:uppercase; }
+  .join-item .ic { font-size:16px; filter:drop-shadow(0 0 8px rgba(37,211,102,.7)); }
+  body[dir="rtl"] .join-item { flex-direction:row-reverse; }
+
+  .marquee { overflow:hidden; border-top:1px solid var(--border); border-bottom:1px solid var(--border); background:rgba(255,0,51,.05); padding:10px 0; margin:30px 0; }
+  .marquee-track { display:inline-block; white-space:nowrap; animation:sl 24s linear infinite; font-size:12px; letter-spacing:3px; color:#ff5577; text-transform:uppercase; font-weight:800; }
+  @keyframes sl { from { transform:translateX(0); } to { transform:translateX(-50%); } }
+
+  footer { text-align:center; padding:30px 18px 60px; font-size:11px; color:#885566; }
+  footer .name { display:block; margin-top:8px; font-size:13px; font-weight:900; letter-spacing:2px; color:#ff3355; }
+
+  .toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(120px); background:linear-gradient(135deg, var(--green), #128c4b); color:#fff; padding:14px 22px; border-radius:12px; font-size:13px; font-weight:800; letter-spacing:1px; text-transform:uppercase; z-index:10000; transition:transform .4s; max-width:calc(100vw - 32px); }
+  .toast.show { transform:translateX(-50%) translateY(0); }
+  .toast.error { background:linear-gradient(135deg,#b3001f,#6b0013); }
+
+  .dl-overlay, .fake-overlay, .lang-overlay, .gate-overlay { position:fixed; inset:0; background:rgba(5,0,0,.94); backdrop-filter:blur(10px); z-index:9999; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity .35s; padding:24px; }
+  .dl-overlay.show, .fake-overlay.show, .lang-overlay.show, .gate-overlay.show { opacity:1; pointer-events:auto; }
+  .dl-panel, .fake-panel, .lang-panel, .gate-panel { width:100%; max-width:400px; background:rgba(20,0,5,.96); border:1px solid var(--border); border-radius:16px; padding:28px 24px; text-align:center; }
+  .fake-panel { border:2px solid #ff0033; }
+  .dl-icon, .fake-icon, .gate-icon { width:56px; height:56px; margin:0 auto 18px; border-radius:50%; background:rgba(255,0,51,.12); border:1px solid var(--red); display:flex; align-items:center; justify-content:center; }
+  .fake-icon { width:78px; height:78px; border:2px solid #ff0033; }
+  .gate-icon { width:78px; height:78px; border:2px solid var(--green); background:rgba(37,211,102,.12); animation:gp 1.6s ease-in-out infinite; }
+  @keyframes gp { 0%,100% { transform:scale(1); box-shadow:0 0 24px rgba(37,211,102,.7); } 50% { transform:scale(1.06); box-shadow:0 0 44px rgba(37,211,102,1); } }
+  .dl-icon svg { width:26px; height:26px; fill:var(--red); }
+  .fake-icon svg { width:40px; height:40px; fill:#ff0033; }
+  .gate-icon svg { width:40px; height:40px; fill:var(--green); }
+  .dl-title, .fake-title, .gate-title { font-size:13px; letter-spacing:3px; text-transform:uppercase; color:#ff5577; font-weight:800; margin-bottom:8px; }
+  .fake-title { font-size:18px; color:#ff3355; letter-spacing:2px; margin-bottom:12px; }
+  .gate-title { font-size:16px; color:#88ffb3; letter-spacing:2px; margin-bottom:10px; }
+  .gate-body { font-size:13px; line-height:1.6; color:#ffe0e6; margin-bottom:18px; }
+  .gate-body b { color:#88ffb3; }
+  .gate-join { display:inline-flex; align-items:center; justify-content:center; gap:10px; padding:15px 24px; border-radius:12px; background:linear-gradient(135deg,#25d366,#0e7a3d); color:#fff; font-family:inherit; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; font-size:13px; text-decoration:none; width:100%; box-shadow:0 0 24px rgba(37,211,102,.6); margin-bottom:14px; cursor:pointer; border:none; }
+  .gate-join:active { transform:scale(.98); }
+  .gate-join svg { width:20px; height:20px; fill:#fff; }
+  .gate-close { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:12px 22px; border-radius:12px; background:rgba(255,0,51,.08); border:1px solid rgba(255,0,51,.4); color:#ff5577; font-family:inherit; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; font-size:12px; cursor:pointer; width:100%; transition:all .25s; }
+  .gate-close:disabled { opacity:.4; cursor:not-allowed; filter:grayscale(.7); }
+  .gate-close:not(:disabled):hover { background:rgba(255,0,51,.16); box-shadow:0 0 20px rgba(255,0,51,.5); }
+  .gate-timer { font-variant-numeric:tabular-nums; color:#88ffb3; }
+
+  .dl-file { font-size:12px; color:#fff; font-family:ui-monospace, monospace; word-break:break-all; margin-bottom:18px; opacity:.8; }
+  .dl-bar-wrap { width:100%; height:8px; background:rgba(255,0,51,.1); border:1px solid var(--border); border-radius:6px; overflow:hidden; margin-bottom:10px; }
+  .dl-bar { height:100%; width:0%; background:linear-gradient(90deg,#ff0033,#ff3366); transition:width .25s; }
+  .dl-status { font-size:11px; color:#ff8899; letter-spacing:1px; text-transform:uppercase; min-height:16px; font-family:ui-monospace, monospace; }
+  .dl-pct { font-size:24px; font-weight:900; color:#fff; margin-top:12px; }
+  .fake-body { font-size:13px; line-height:1.6; color:#ffe0e6; margin-bottom:20px; }
+  .fake-body b { color:#ff3355; }
+  .fake-code { font-family:ui-monospace, monospace; background:rgba(255,0,51,.12); border:1px solid rgba(255,0,51,.35); border-radius:8px; padding:8px 12px; font-size:12px; color:#ff8899; margin-bottom:20px; word-break:break-all; }
+  .fake-btn { padding:13px 26px; background:linear-gradient(135deg,#ff0033,#b3001f); border:none; border-radius:10px; color:#fff; font-family:inherit; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; font-size:12px; cursor:pointer; }
+  .lang-panel { max-width:480px; max-height:82vh; display:flex; flex-direction:column; overflow:hidden; padding:0; }
+  .lang-head { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid var(--border); background:linear-gradient(135deg, rgba(255,0,51,.15), rgba(255,0,51,.03)); }
+  .lang-head .t { font-size:13px; font-weight:900; letter-spacing:3px; text-transform:uppercase; color:#ff5577; }
+  .lang-head .x { background:none; border:none; color:#ff5577; cursor:pointer; font-size:22px; padding:4px 8px; }
+  .lang-search { padding:12px 16px; border-bottom:1px solid var(--border); }
+  .lang-search input { width:100%; background:rgba(255,255,255,.04); border:1px solid var(--border); border-radius:10px; padding:10px 14px; color:#fff; font-size:13px; font-family:inherit; outline:none; }
+  .lang-list { flex:1; overflow-y:auto; padding:8px; display:grid; grid-template-columns:1fr 1fr; gap:4px; }
+  .lang-item { display:flex; align-items:center; gap:8px; padding:10px 12px; border-radius:10px; cursor:pointer; background:rgba(255,0,51,.04); color:#ffe0e6; font-size:12px; text-align:left; font-family:inherit; font-weight:600; border:1px solid transparent; }
+  .lang-item.active { background:rgba(37,211,102,.15); border-color:var(--green); color:#fff; }
+  .lang-item .flag { font-size:16px; }
+  .lang-item .name { font-size:11px; opacity:.7; display:block; font-weight:400; }
+
+  .chat-fab { position:fixed; bottom:22px; right:22px; z-index:9000; width:58px; height:58px; border-radius:50%; background:linear-gradient(135deg,#ff0033,#b3001f); border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 0 26px rgba(255,0,51,.7); }
+  body[dir="rtl"] .chat-fab { right:auto; left:22px; }
+  .chat-fab svg { width:26px; height:26px; fill:#fff; }
+  .chat-panel { position:fixed; bottom:22px; right:22px; z-index:9001; width:min(370px, calc(100vw - 32px)); height:min(600px, calc(100vh - 100px)); background:rgba(10,0,3,.98); border:1px solid var(--border); border-radius:18px; display:flex; flex-direction:column; overflow:hidden; transform:translateY(20px) scale(.96); opacity:0; pointer-events:none; transition:all .3s; }
+  body[dir="rtl"] .chat-panel { right:auto; left:22px; }
+  .chat-panel.open { transform:translateY(0) scale(1); opacity:1; pointer-events:auto; }
+  .chat-head { display:flex; align-items:center; gap:10px; padding:14px 16px; border-bottom:1px solid var(--border); }
+  .chat-head .bot-avatar { width:36px; height:36px; border-radius:50%; border:2px solid var(--red); }
+  .chat-head .info { flex:1; }
+  .chat-head .bot-name { font-size:13px; font-weight:800; letter-spacing:1px; color:#ff5577; }
+  .chat-head .bot-status { font-size:10px; color:var(--green); display:flex; align-items:center; gap:5px; letter-spacing:1px; text-transform:uppercase; }
+  .chat-close { background:none; border:none; color:#ff5577; cursor:pointer; font-size:22px; padding:4px 8px; }
+  .chat-body { flex:1; overflow-y:auto; padding:14px; display:flex; flex-direction:column; gap:10px; }
+  .msg { max-width:85%; padding:10px 14px; border-radius:14px; font-size:13px; line-height:1.45; white-space:pre-line; }
+  .msg.bot { align-self:flex-start; background:rgba(255,0,51,.1); border:1px solid rgba(255,0,51,.3); color:#ffe0e6; border-bottom-left-radius:4px; }
+  .msg.user { align-self:flex-end; background:linear-gradient(135deg,#ff0033,#b3001f); color:#fff; border-bottom-right-radius:4px; }
+  .msg.typing { display:flex; gap:4px; align-items:center; padding:14px; }
+  .msg.typing span { width:7px; height:7px; border-radius:50%; background:#ff5577; animation:bn 1.2s ease-in-out infinite; }
+  .msg.typing span:nth-child(2) { animation-delay:.15s; }
+  .msg.typing span:nth-child(3) { animation-delay:.3s; }
+  @keyframes bn { 0%,60%,100% { transform:translateY(0); opacity:.5; } 30% { transform:translateY(-6px); opacity:1; } }
+  .quick { display:flex; flex-wrap:wrap; gap:6px; padding:8px 12px 0; border-top:1px solid rgba(255,0,51,.2); max-height:100px; overflow-y:auto; }
+  .quick button { background:rgba(255,0,51,.08); border:1px solid rgba(255,0,51,.3); color:#ff8899; font-size:11px; padding:6px 10px; border-radius:20px; cursor:pointer; font-family:inherit; }
+  .chat-input { display:flex; gap:8px; padding:12px; border-top:1px solid var(--border); }
+  .chat-input input { flex:1; background:rgba(255,255,255,.03); border:1px solid var(--border); border-radius:10px; padding:10px 14px; color:#fff; font-size:13px; font-family:inherit; outline:none; min-width:0; }
+  .chat-input button { background:linear-gradient(135deg,#ff0033,#b3001f); border:none; border-radius:10px; width:42px; height:42px; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; }
+  .chat-input button svg { width:18px; height:18px; fill:#fff; }
+
+  @media (max-width:400px) {
+    .brand span { font-size:11px; }
+    .lang-list { grid-template-columns:1fr; }
+    .lang-btn .lbl { display:none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="bg"></div>
+<div id="grid"></div>
+<canvas id="stars"></canvas>
+
+<div class="warnbar" id="warnbar">premium file · do not sell · @fearlessffx</div>
+
+<header>
+  <div class="brand">
+    <img src="https://cdn.phototourl.com/member/2026-09-26-0db20a2d-88a5-4fa6-9471-daeaf61fa606.png" alt="logo">
+    <span>𝙁𝙀𝘼𝙍𝙇𝙀𝙎𝙎 𝙁𝙁𝙃𝟰𝙭</span>
+  </div>
+  <div class="header-right">
+    <button class="lang-btn" id="langBtn">
+      <span>🌐</span>
+      <span class="cur" id="langCur">EN</span>
+    </button>
+    <div class="clock">
+      <span>🇳🇬</span>
+      <span class="time" id="ngTime">--:--:--</span>
+    </div>
+    <div class="ver"><span class="live-dot"></span>v1.0.0</div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="badge" id="badge">PREMIUM · 70% · UNDETECTED</div>
+  <h1 id="title">Premium Drag<br>Headshot File</h1>
+  <div class="typed"><span id="typed"></span><span class="cursor"></span></div>
+  <div class="live-count">
+    <span class="live-dot"></span>
+    <span class="num" id="liveCount">7</span>
+    <span id="downloading">downloading now</span>
+  </div>
+</section>
+
+<section class="unlock-panel" id="unlockPanel">
+  <div class="unlock-title">
+    <span class="live-dot"></span>
+    <span id="unlockTitle">UNLOCK CONTENT</span>
+  </div>
+  <div class="unlock-sub" id="unlockSub">Share this site 2 times on WhatsApp to unlock the file</div>
+  <div class="unlock-progress">
+    <div class="unlock-step" id="step1">
+      <div class="circle">1</div>
+      <div class="label" id="share1">Share 1</div>
+    </div>
+    <div class="unlock-line" id="line1"></div>
+    <div class="unlock-step" id="step2">
+      <div class="circle">2</div>
+      <div class="label" id="share2">Share 2</div>
+    </div>
+  </div>
+  <button class="unlock-btn" id="unlockShareBtn">
+    <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
+    <span id="unlockShareText">Share on WhatsApp (0/2)</span>
+  </button>
+  <div class="unlock-warn" id="warnUnlock">⚠ <b>fake shares will be detected</b> — if you share without sending the link, the file will not work</div>
+</section>
+
+<div class="card">
+  <img class="preview" src="https://cdn.phototourl.com/member/2026-09-26-e49e78b2-9168-4021-8b5f-af30447131c3.jpg" alt="PREMIUM DRAG HEADSHOT FILE">
+  <div class="stats">
+    <div class="pill" id="pill1">◉ headshot lock</div>
+    <div class="pill" id="pill2">◉ drag mode</div>
+    <div class="pill" id="pill3">◉ recoil 0.00</div>
+    <div class="pill" id="pill4">◉ spread 0.00</div>
+    <div class="pill" id="pill5">◉ aim assist</div>
+    <div class="pill" id="pill6">◉ undetected</div>
+  </div>
+  <div class="actions">
+    <button class="btn btn-primary locked" id="downloadBtn" disabled>
+      <svg viewBox="0 0 24 24"><path d="M12 16l-6-6h4V4h4v6h4l-6 6zm-7 2h14v2H5v-2z"/></svg>
+      <span id="downloadTxt">Download File</span>
+    </button>
+    <a class="btn btn-outline locked" id="setupBtn" href="https://whatsapp.com/channel/0029VbEGYSlIXnlnVTIs1b2P/110" target="_blank" style="pointer-events:none;">
+      <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 3a7 7 0 013.5 13.1l.5 3.4-3.3-1.4A7 7 0 1112 5z"/></svg>
+      <span id="setupTxt">Setup Guide</span>
+    </a>
+    <button class="btn btn-outline locked" id="copyPass" disabled>
+      <svg viewBox="0 0 24 24"><path d="M16 1H4a2 2 0 00-2 2v14h2V3h12V1zm3 4H8a2 2 0 00-2 2v14a2 2 0 002 2h11a2 2 0 002-2V7a2 2 0 00-2-2zm0 16H8V7h11v14z"/></svg>
+      <span id="copyPassText">Copy File Password</span>
+    </button>
+  </div>
+</div>
+
+<div class="marquee">
+  <div class="marquee-track">
+    ⚡ premium drag headshot · 70% unlocked · do not sell · @fearlessffx · v1.0.0 build · for ff max · ⚡ premium drag headshot · 70% unlocked · do not sell · @fearlessffx · v1.0.0 build · for ff max ·
+  </div>
+</div>
+
+<section class="channels">
+  <h2 id="followChannels">Follow All Channels</h2>
+  <div class="ch-list">
+    <a class="ch" href="https://whatsapp.com/channel/0029VbDIkfX3GJOotlw08M3E" target="_blank">
+      <div class="dot"></div>
+      <div><div class="name" id="mainCh">Main Channel</div><div class="sub" id="mainSub">@fearlessffx · files + updates</div></div>
+    </a>
+    <a class="ch" href="https://whatsapp.com/channel/0029Vb8dD7a5q08gPKk13w2R" target="_blank">
+      <div class="dot"></div>
+      <div><div class="name" id="secondCh">Second Channel</div><div class="sub" id="secondSub">backup · more drops</div></div>
+    </a>
+    <a class="ch" href="https://whatsapp.com/channel/0029VbEGYSlIXnlnVTIs1b2P" target="_blank">
+      <div class="dot"></div>
+      <div><div class="name" id="thirdCh">Third Channel</div><div class="sub" id="thirdSub">setup guides · tutorials</div></div>
+    </a>
+    <a class="ch" href="https://whatsapp.com/channel/0029Vb7caVw0gcfAjWgNx51M" target="_blank">
+      <div class="dot"></div>
+      <div><div class="name" id="fourthCh">New Channel</div><div class="sub" id="fourthSub">latest drops · join now</div></div>
+    </a>
+  </div>
+
+  <div class="join-note">
+    <div class="join-title">📢 JOIN THE CHANNELS FOR</div>
+    <div class="join-items">
+      <div class="join-item"><span class="ic">📁</span> FREE DRAG HEADSHOT FILE</div>
+      <div class="join-item"><span class="ic">🎯</span> AIM FIX SENSITIVITY SETTINGS</div>
+      <div class="join-item"><span class="ic">🔥</span> WEEKLY FREE DROPS</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span id="rights">© 2026 · all rights reserved</span>
+  <span class="name">𝙁𝙀𝘼𝙍𝙇𝙀𝙎𝙎 𝙁𝙁𝙃𝟰𝙭</span>
+</footer>
+
+<div class="toast" id="toast"><span id="toastMsg"></span></div>
+
+<!-- FIRST-OPEN GATE — must join new channel -->
+<div class="gate-overlay" id="gateOverlay">
+  <div class="gate-panel">
+    <div class="gate-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm-1 15v-2h2v2h-2zm0-4V7h2v6h-2z"/></svg>
+    </div>
+    <div class="gate-title">JOIN TO CONTINUE</div>
+    <div class="gate-body">
+      To access the <b>premium drag headshot file</b>, you must first join our new channel.<br><br>
+      Tap <b>Join Channel</b> below. Then wait <b>5 seconds</b> — the close button will unlock.
+    </div>
+    <button class="gate-join" id="gateJoinBtn">
+      <svg viewBox="0 0 24 24"><path d="M20 2H4a2 2 0 00-2 2v18l4-4h14a2 2 0 002-2V4a2 2 0 00-2-2zM7 9h10v2H7V9zm7 5H7v-2h7v2zm3-6H7V6h10v2z"/></svg>
+      JOIN CHANNEL
+    </button>
+    <button class="gate-close" id="gateCloseBtn" disabled>
+      <span id="gateCloseText">CLOSE (5s)</span>
+    </button>
+  </div>
+</div>
+
+<div class="dl-overlay" id="dlOverlay">
+  <div class="dl-panel">
+    <div class="dl-icon"><svg viewBox="0 0 24 24"><path d="M12 16l-6-6h4V4h4v6h4l-6 6zm-7 2h14v2H5v-2z"/></svg></div>
+    <div class="dl-title" id="dlTitle">Preparing Download</div>
+    <div class="dl-file">premium_drag_headshot_70%_@fearlessffx.7z</div>
+    <div class="dl-bar-wrap"><div class="dl-bar" id="dlBar"></div></div>
+    <div class="dl-status" id="dlStatus">initializing...</div>
+    <div class="dl-pct" id="dlPct">0%</div>
+  </div>
+</div>
+
+<div class="fake-overlay" id="fakeOverlay">
+  <div class="fake-panel">
+    <div class="fake-icon"><svg viewBox="0 0 24 24"><path d="M12 2L1 21h22L12 2zm0 4l7.53 13H4.47L12 6zm-1 5v4h2v-4h-2zm0 5v2h2v-2h-2z"/></svg></div>
+    <div class="fake-title" id="fakeTitle">FILE NOT WORKING</div>
+    <div class="fake-body" id="fakeBody"><b>Fake share detected.</b><br>The link was not sent on WhatsApp.</div>
+    <div class="fake-code">ERR_SHARE_INVALID_0x4F2A</div>
+    <div class="fake-body" id="fakeBody2">To fix, share the site link again and actually send it.</div>
+    <button class="fake-btn" id="fakeBtn">Try Again</button>
+  </div>
+</div>
+
+<div class="lang-overlay" id="langOverlay">
+  <div class="lang-panel">
+    <div class="lang-head">
+      <span class="t" id="langTitle">SELECT LANGUAGE</span>
+      <button class="x" id="langClose">×</button>
+    </div>
+    <div class="lang-search"><input type="text" id="langSearch" placeholder="Search language..."></div>
+    <div class="lang-list" id="langList"></div>
+  </div>
+</div>
+
+<button class="chat-fab" id="chatFab" aria-label="Open chat">
+  <svg viewBox="0 0 24 24"><path d="M20 2H4a2 2 0 00-2 2v18l4-4h14a2 2 0 002-2V4a2 2 0 00-2-2zM7 9h10v2H7V9zm7 5H7v-2h7v2zm3-6H7V6h10v2z"/></svg>
+</button>
+
+<div class="chat-panel" id="chatPanel">
+  <div class="chat-head">
+    <img class="bot-avatar" src="https://cdn.phototourl.com/member/2026-09-26-0db20a2d-88a5-4fa6-9471-daeaf61fa606.png" alt="bot">
+    <div class="info">
+      <div class="bot-name">FEARLESS AI</div>
+      <div class="bot-status"><span class="live-dot"></span>online</div>
+    </div>
+    <button class="chat-close" id="chatClose">×</button>
+  </div>
+  <div class="chat-body" id="chatBody"></div>
+  <div class="quick" id="quickReplies"></div>
+  <div class="chat-input">
+    <input type="text" id="chatInput" placeholder="Ask about the file...">
+    <button id="chatSend" aria-label="Send">
+      <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const SITE_URL = "https://premiumhsdrag.netlify.app";
+  const FILE_URL = "https://www.mediafire.com/file/83l607eh1wxankw/premuim_drag_headshot_70%2525_%2540fearlessffx.%25F0%259F%2587%25A7%25F0%259F%2587%25B7%25F0%259F%25A5%25BD7z/file";
+  const PASS_LINK = "https://whatsapp.com/channel/0029VbDIkfX3GJOotlw08M3E";
+  const GATE_CHANNEL = "https://whatsapp.com/channel/0029Vb7caVw0gcfAjWgNx51M";
+  const SHARE_DELAY_MS = 5000;
+  const GATE_DELAY_MS = 5000;
+
+  const LANGS = [
+    { c:'en', f:'🇬🇧', n:'English',    l:'English', rtl:false },
+    { c:'ha', f:'🇳🇬', n:'Hausa',      l:'Hausa',   rtl:false },
+    { c:'yo', f:'🇳🇬', n:'Yoruba',     l:'Yorùbá',  rtl:false },
+    { c:'ig', f:'🇳🇬', n:'Igbo',       l:'Igbo',    rtl:false },
+    { c:'fr', f:'🇫🇷', n:'French',     l:'Français',rtl:false },
+    { c:'es', f:'🇪🇸', n:'Spanish',    l:'Español', rtl:false },
+    { c:'pt', f:'🇧🇷', n:'Portuguese', l:'Português',rtl:false },
+    { c:'ar', f:'🇸🇦', n:'Arabic',     l:'العربية', rtl:true  },
+    { c:'ur', f:'🇵🇰', n:'Urdu',       l:'اردو',    rtl:true  },
+    { c:'pa', f:'🇵🇰', n:'Punjabi',    l:'پنجابی',  rtl:true  },
+    { c:'sd', f:'🇵🇰', n:'Sindhi',     l:'سنڌي',    rtl:true  },
+    { c:'hi', f:'🇮🇳', n:'Hindi',      l:'हिन्दी',  rtl:false },
+    { c:'tl', f:'🇵🇭', n:'Filipino',   l:'Filipino',rtl:false },
+    { c:'id', f:'🇮🇩', n:'Indonesian', l:'Bahasa Indonesia', rtl:false },
+    { c:'zh', f:'🇨🇳', n:'Chinese',    l:'中文',    rtl:false }
+  ];
+
+  const TR = {
+    en: ["premium file · do not sell · @fearlessffx","PREMIUM · 70% · UNDETECTED","Premium Drag<br>Headshot File","downloading now","UNLOCK CONTENT","Share this site 2 times on WhatsApp to unlock the file","Share 1","Share 2","⚠ <b>fake shares will be detected</b> — if you share without sending the link, the file will not work","Download File","Setup Guide","Copy File Password","Follow All Channels","Main Channel","@fearlessffx · files + updates","Second Channel","backup · more drops","Third Channel","setup guides · tutorials","© 2026 · all rights reserved","Preparing Download","FILE NOT WORKING","<b>Fake share detected.</b><br>The link was not sent on WhatsApp.","To fix, share the site link again and actually send it.","Try Again","SELECT LANGUAGE","Share on WhatsApp","Waiting","Unlocked ✓","downloading","done","New Channel","latest drops · join now"],
+    ha: ["fayil na musamman · kar a sayar · @fearlessffx","NA MUSAMMAN · 70% · BA A GANE","Fayil Na Drag<br>Headshot","saukarwa yanzu","BUƊE ABUN CIKI","Raba wannan shafi sau 2 a WhatsApp don buɗe fayil ɗin","Raba 1","Raba 2","⚠ <b>za a gano rabon karya</b> — idan ka raba ba tare da aika hanyar haɗi ba, fayil ɗin ba zai yi aiki ba","Sauke Fayil","Jagorar Saiti","Kwafi Kalmar Sirri","Bi Duk Tashoshi","Babban Tasha","@fearlessffx · fayiloli + sabuntawa","Tasha ta Biyu","madadin · ƙarin saukarwa","Tasha ta Uku","jagorar saituna · koyawa","© 2026 · duk haƙƙin mallaka","Ana Shirya Saukewa","FAYIL BA YA AIKI","<b>An gano rabon karya.</b><br>Ba a aika hanyar haɗi a WhatsApp ba.","Don gyara, sake raba hanyar shafin kuma aika shi.","Sake Gwadawa","ZAƁI HARSHE","Raba a WhatsApp","Jira","An buɗe ✓","saukarwa","an gama","Sabuwar Tasha","sabbin drops · shiga yanzu"],
+    yo: ["fáìlì pàtàkì · má ṣe tà · @fearlessffx","PÀTÀKÌ · 70% · A KÒ RÍ I","Fáìlì Drag<br>Headshot","ń gbà ní báyìí","ṢÍ ÀKÓÓNÚ","Pín ojú òpó yìí lẹ́ẹ̀mejì lórí WhatsApp","Pín 1","Pín 2","⚠ <b>a ó rí àwọn ìpín èké</b> — tí o bá pín láìfi ọ̀nà ránṣẹ́, fáìlì náà kò ní ṣiṣẹ́","Gbà Fáìlì","Ìtọ́sọ́nà Ètò","Da Àkọ́kọ́ Ọ̀rọ̀ Ìkọ̀kọ̀","Tẹ̀lé Gbogbo Àwọn Ikanni","Ikanni Àkọ́kọ́","@fearlessffx · àwọn fáìlì + ìmúdójúìwọ̀n","Ikanni Kejì","àṣẹ̀yìn · àwọn ìgbà mìíràn","Ikanni Kẹta","àwọn ìtọ́sọ́nà · àwọn ẹ̀kọ́","© 2026 · gbogbo ẹ̀tọ́","Ń Múra Ìgbà","FÁÌLÌ KÒ ṢIṢẸ́","<b>A rí ìpín èké.</b><br>A kò fi ọ̀nà ránṣẹ́ lórí WhatsApp.","Láti ṣàtúnṣe, pín ọ̀nà ojú òpó lẹ́ẹ̀kan sí i.","Gbìyànjú Lẹ́ẹ̀kan Sí","YAN ÈDÈ","Pín lórí WhatsApp","Ń dúró","A ṣí ✓","ń gbà","ó parí","Ikanni Tuntun","àwọn ìgbà tuntun · wọlé"],
+    ig: ["faịlụ kacha mma · ereghị ya · @fearlessffx","KACHA MMA · 70% · AHỤGHỊ","Faịlụ Drag<br>Headshot","na-ebugo ugbu a","MEGHE ỌDỊNMA","Kekọrịta saịtị a ugboro 2 na WhatsApp","Kekọrịta 1","Kekọrịta 2","⚠ <b>a ga-achọpụta nkekọrịta ụgha</b>","Budata Faịlụ","Ntuziaka Nhazi","Detuo Paswọọdụ","Soro Ọwa Niile","Isi Ọwa","@fearlessffx · faịlụ + mmelite","Ọwa nke Abụọ","ndabere · ọzọ drops","Ọwa nke Atọ","ntuziaka · nkuzi","© 2026 · ikike niile","Na-akwado Nbudata","FAỊLỤ ANỊGHỊ ARỤ ỌRỤ","<b>Achọpụtara nkekọrịta ụgha.</b><br>Ezipụghị njikọ na WhatsApp.","Iji dozie, kekọrịta njikọ ọzọ ma zipu ya.","Nwaa Ọzọ","HỌRỌ ASỤSỤ","Kekọrịta na WhatsApp","Na-eche","Emeghere ✓","na-ebugo","emechara","Ọwa Ọhụrụ","drops ọhụrụ · banye ugbu a"],
+    fr: ["fichier premium · ne pas vendre · @fearlessffx","PREMIUM · 70% · INDÉTECTÉ","Fichier Drag<br>Headshot Premium","téléchargement en cours","DÉBLOQUER LE CONTENU","Partagez ce site 2 fois sur WhatsApp pour débloquer le fichier","Partage 1","Partage 2","⚠ <b>les faux partages seront détectés</b> — si vous partagez sans envoyer le lien, le fichier ne fonctionnera pas","Télécharger","Guide d'installation","Copier le mot de passe","Suivre toutes les chaînes","Chaîne principale","@fearlessffx · fichiers + mises à jour","Deuxième chaîne","sauvegarde · plus de drops","Troisième chaîne","guides · tutoriels","© 2026 · tous droits réservés","Préparation du téléchargement","FICHIER NE FONCTIONNE PAS","<b>Faux partage détecté.</b><br>Le lien n'a pas été envoyé sur WhatsApp.","Pour corriger, partagez à nouveau le lien et envoyez-le.","Réessayer","CHOISIR LA LANGUE","Partager sur WhatsApp","Patientez","Débloqué ✓","téléchargement","terminé","Nouvelle Chaîne","derniers drops · rejoindre"],
+    es: ["archivo premium · no vender · @fearlessffx","PREMIUM · 70% · INDETECTABLE","Archivo Drag<br>Headshot Premium","descargando ahora","DESBLOQUEAR CONTENIDO","Comparte este sitio 2 veces en WhatsApp","Compartir 1","Compartir 2","⚠ <b>las comparticiones falsas serán detectadas</b>","Descargar Archivo","Guía de Instalación","Copiar Contraseña","Seguir Todos los Canales","Canal Principal","@fearlessffx · archivos + actualizaciones","Segundo Canal","respaldo · más drops","Tercer Canal","guías · tutoriales","© 2026 · todos los derechos reservados","Preparando Descarga","ARCHIVO NO FUNCIONA","<b>Compartición falsa detectada.</b><br>El enlace no fue enviado en WhatsApp.","Para arreglar, comparte el enlace otra vez y envíalo.","Intentar de Nuevo","SELECCIONAR IDIOMA","Compartir en WhatsApp","Esperando","Desbloqueado ✓","descargando","listo","Canal Nuevo","últimos drops · unirse"],
+    pt: ["arquivo premium · não venda · @fearlessffx","PREMIUM · 70% · INDETECTÁVEL","Arquivo Drag<br>Headshot Premium","baixando agora","DESBLOQUEAR CONTEÚDO","Compartilhe este site 2 vezes no WhatsApp","Compartilhar 1","Compartilhar 2","⚠ <b>compartilhamentos falsos serão detectados</b>","Baixar Arquivo","Guia de Instalação","Copiar Senha","Seguir Todos os Canais","Canal Principal","@fearlessffx · arquivos + atualizações","Segundo Canal","backup · mais drops","Terceiro Canal","guias · tutoriais","© 2026 · todos os direitos reservados","Preparando Download","ARQUIVO NÃO FUNCIONA","<b>Compartilhamento falso detectado.</b><br>O link não foi enviado no WhatsApp.","Para corrigir, compartilhe o link novamente e envie.","Tentar de Novo","SELECIONAR IDIOMA","Compartilhar no WhatsApp","Aguardando","Desbloqueado ✓","baixando","concluído","Novo Canal","últimos drops · entrar"],
+    ar: ["ملف مميز · لا تبيع · @fearlessffx","مميز · 70% · غير مكتشف","ملف دراج<br>هيدشوت مميز","يتم التنزيل الآن","فتح المحتوى","شارك هذا الموقع مرتين على واتساب","شارك 1","شارك 2","⚠ <b>سيتم كشف المشاركات المزيفة</b>","تحميل الملف","دليل التثبيت","نسخ كلمة المرور","تابع كل القنوات","القناة الرئيسية","@fearlessffx · الملفات + التحديثات","القناة الثانية","نسخة احتياطية · المزيد","القناة الثالثة","أدلة · دروس","© 2026 · جميع الحقوق محفوظة","جاري التحضير للتنزيل","الملف لا يعمل","<b>تم كشف مشاركة مزيفة.</b><br>لم يتم إرسال الرابط.","لإصلاح ذلك، شارك الرابط مرة أخرى.","حاول مرة أخرى","اختر اللغة","شارك على واتساب","في الانتظار","تم الفتح ✓","يتم التنزيل","انتهى","قناة جديدة","آخر التنزيلات · انضم"],
+    ur: ["پریمیم فائل · نہ بیچیں · @fearlessffx","پریمیم · 70% · ان ڈیٹیکٹڈ","پریمیم ڈریگ<br>ہیڈ شاٹ فائل","ابھی ڈاؤن لوڈ ہو رہا ہے","مواد کھولیں","فائل کھولنے کے لیے اس سائٹ کو WhatsApp پر 2 بار شیئر کریں","شیئر 1","شیئر 2","⚠ <b>جعلی شیئر پکڑے جائیں گے</b> — لنک بھیجے بغیر شیئر کیا تو فائل کام نہیں کرے گی","فائل ڈاؤن لوڈ","سیٹ اپ گائیڈ","پاس ورڈ کاپی","تمام چینلز فالو کریں","مین چینل","@fearlessffx · فائلیں + اپڈیٹس","دوسرا چینل","بیک اپ · مزید ڈراپس","تیسرا چینل","گائیڈز · ٹیوٹوریلز","© 2026 · جملہ حقوق محفوظ","ڈاؤن لوڈ تیار ہو رہا ہے","فائل کام نہیں کر رہی","<b>جعلی شیئر پکڑا گیا۔</b><br>WhatsApp پر لنک نہیں بھیجا گیا۔","ٹھیک کرنے کے لیے، لنک دوبارہ شیئر کریں اور بھیجیں۔","دوبارہ کوشش","زبان منتخب کریں","WhatsApp پر شیئر کریں","انتظار","کھل گیا ✓","ڈاؤن لوڈ","ہو گیا","نیا چینل","تازہ ڈراپس · ابھی شامل ہوں"],
+    pa: ["پریمیم فائل · نہ ویچو · @fearlessffx","پریمیم · 70% · ان ڈیٹیکٹڈ","پریمیم ڈریگ<br>ہیڈ شاٹ فائل","ہن ڈاؤن لوڈ ہو رہی اے","مواد کھولو","فائل کھولن لئی ایس سائٹ نوں WhatsApp تے 2 وار شیئر کرو","شیئر 1","شیئر 2","⚠ <b>نقلی شیئر پکڑے جان گے</b>","فائل ڈاؤن لوڈ","سیٹ اپ گائیڈ","پاس ورڈ کاپی","سارے چینل فالو کرو","مین چینل","@fearlessffx · فائلاں + اپڈیٹس","دوجا چینل","بیک اپ · ہور ڈراپس","تیجا چینل","گائیڈز · ٹیوٹوریلز","© 2026 · سارے حق محفوظ","ڈاؤن لوڈ تیار ہو رہی اے","فائل کم نہیں کر رہی","<b>نقلی شیئر پکڑی گئی۔</b><br>WhatsApp تے لنک نہیں بھیجیا گیا۔","ٹھیک کرن لئی، لنک دوبارہ شیئر کرو تے بھیجو۔","دوبارہ کوشش","زبان چنو","WhatsApp تے شیئر کرو","انتظار","کھل گیا ✓","ڈاؤن لوڈ","ہو گیا","نواں چینل","تازہ ڈراپس · ہن شامل ہوو"],
+    sd: ["پريميم فائل · نه وڪڻو · @fearlessffx","پريميم · 70% · اڻڄاتل","پريميم ڊريگ<br>هيڊ شاٽ فائل","هينئر ڊائون لوڊ ٿي رهيو آهي","مواد کوليو","فائل کولڻ لاءِ هن سائيٽ کي WhatsApp تي 2 ڀيرا شيئر ڪريو","شيئر 1","شيئر 2","⚠ <b>جعلي شيئر پڪڙيا ويندا</b>","فائل ڊائون لوڊ","سيٽ اپ گائيڊ","پاسورڊ ڪاپي","سڀ چينل فالو ڪريو","مين چينل","@fearlessffx · فائلون + اپڊيٽس","ٻيو چينل","بيڪ اپ · وڌيڪ ڊراپس","ٽيون چينل","گائيڊ · ٽيوٽوريل","© 2026 · سڀ حق محفوظ","ڊائون لوڊ تيار ٿي رهيو آهي","فائل ڪم نٿي ڪري","<b>جعلي شيئر پکڙيو ويو.</b><br>WhatsApp تي لنڪ نه موڪليو ويو.","ٺيڪ ڪرڻ لاءِ، لنڪ ٻيهر شيئر ڪريو ۽ موڪليو.","ٻيهر ڪوشش","ٻولي چونڊيو","WhatsApp تي شيئر ڪريو","انتظار","کلجي ويو ✓","ڊائون لوڊ","ٿي ويو","نئون چينل","تازا ڊراپس · شامل ٿيو"],
+    hi: ["प्रीमियम फ़ाइल · न बेचें · @fearlessffx","प्रीमियम · 70% · अनडिटेक्टेड","प्रीमियम ड्रैग<br>हेडशॉट फ़ाइल","अभी डाउनलोड हो रहा है","कंटेंट अनलॉक करें","फ़ाइल अनलॉक करने के लिए इस साइट को WhatsApp पर 2 बार शेयर करें","शेयर 1","शेयर 2","⚠ <b>फ़र्ज़ी शेयर पकड़े जाएँगे</b>","फ़ाइल डाउनलोड करें","सेटअप गाइड","पासवर्ड कॉपी करें","सभी चैनल फॉलो करें","मुख्य चैनल","@fearlessffx · फ़ाइलें + अपडेट","दूसरा चैनल","बैकअप · और ड्रॉप्स","तीसरा चैनल","गाइड · ट्यूटोरियल","© 2026 · सर्वाधिकार सुरक्षित","डाउनलोड तैयार हो रहा है","फ़ाइल काम नहीं कर रही","<b>फ़र्ज़ी शेयर पकड़ा गया।</b><br>WhatsApp पर लिंक नहीं भेजा गया।","ठीक करने के लिए, लिंक फिर से शेयर करें।","फिर कोशिश करें","भाषा चुनें","WhatsApp पर शेयर करें","प्रतीक्षा","अनलॉक ✓","डाउनलोड","हो गया","नया चैनल","नए ड्रॉप्स · अभी जुड़ें"],
+    tl: ["premium file · huwag ibenta · @fearlessffx","PREMIUM · 70% · HINDI NATUKLASAN","Premium Drag<br>Headshot File","nagda-download ngayon","I-UNLOCK ANG CONTENT","I-share ang site na ito ng 2 beses sa WhatsApp","Share 1","Share 2","⚠ <b>mahuhuli ang pekeng share</b>","I-download ang File","Setup Guide","Kopyahin ang Password","I-follow Lahat ng Channel","Pangunahing Channel","@fearlessffx · files + updates","Pangalawang Channel","backup · mas maraming drops","Pangatlong Channel","mga gabay · tutorials","© 2026 · lahat ng karapatan","Inihahanda ang Download","HINDI GUMAGANA ANG FILE","<b>May pekeng share na natukoy.</b><br>Hindi naipadala ang link.","Para ayusin, i-share muli ang link at ipadala.","Subukan Muli","PUMILI NG WIKA","I-share sa WhatsApp","Naghihintay","Na-unlock ✓","nagda-download","tapos","Bagong Channel","pinakabagong drops · sumali"],
+    id: ["file premium · jangan dijual · @fearlessffx","PREMIUM · 70% · TIDAK TERDETEKSI","File Drag<br>Headshot Premium","mengunduh sekarang","BUKA KONTEN","Bagikan situs ini 2 kali di WhatsApp","Bagikan 1","Bagikan 2","⚠ <b>bagikan palsu akan terdeteksi</b>","Unduh File","Panduan Instalasi","Salin Sandi","Ikuti Semua Saluran","Saluran Utama","@fearlessffx · file + pembaruan","Saluran Kedua","cadangan · lebih banyak drop","Saluran Ketiga","panduan · tutorial","© 2026 · semua hak dilindungi","Menyiapkan Unduhan","FILE TIDAK BERFUNGSI","<b>Bagikan palsu terdeteksi.</b><br>Tautan tidak dikirim di WhatsApp.","Untuk memperbaiki, bagikan tautan lagi.","Coba Lagi","PILIH BAHASA","Bagikan di WhatsApp","Menunggu","Terbuka ✓","mengunduh","selesai","Saluran Baru","drop terbaru · gabung"],
+    zh: ["高级文件 · 请勿出售 · @fearlessffx","高级 · 70% · 未被检测","高级 Drag<br>爆头文件","正在下载","解锁内容","在 WhatsApp 上分享此网站 2 次","分享 1","分享 2","⚠ <b>虚假分享将被检测</b>","下载文件","设置指南","复制密码","关注所有频道","主频道","@fearlessffx · 文件 + 更新","第二频道","备份 · 更多掉落","第三频道","指南 · 教程","© 2026 · 版权所有","正在准备下载","文件无法使用","<b>检测到虚假分享。</b><br>链接未在 WhatsApp 上发送。","修复方法：再次分享链接并发送。","重试","选择语言","在 WhatsApp 分享","等待中","已解锁 ✓","下载中","完成","新频道","最新掉落 · 加入"]
+  };
+
+  const KEYS = ['warnbar','badge','title','downloading','unlockTitle','unlockSub','share1','share2','warnUnlock','download','setup','copyPass','followChannels','mainCh','mainSub','secondCh','secondSub','thirdCh','thirdSub','rights','dlTitle','fakeTitle','fakeBody','fakeBody2','tryAgain','langTitle','shareBtn','waiting','unlocked','downloadingWord','doneWord','fourthCh','fourthSub'];
+
+  const EL = { warnbar:'warnbar', badge:'badge', title:'title', downloading:'downloading',
+    unlockTitle:'unlockTitle', unlockSub:'unlockSub', share1:'share1', share2:'share2',
+    warnUnlock:'warnUnlock', download:'downloadTxt', setup:'setupTxt', copyPass:'copyPassText',
+    followChannels:'followChannels', mainCh:'mainCh', mainSub:'mainSub', secondCh:'secondCh',
+    secondSub:'secondSub', thirdCh:'thirdCh', thirdSub:'thirdSub', rights:'rights',
+    dlTitle:'dlTitle', fakeTitle:'fakeTitle', fakeBody:'fakeBody', fakeBody2:'fakeBody2',
+    tryAgain:'fakeBtn', langTitle:'langTitle', fourthCh:'fourthCh', fourthSub:'fourthSub' };
+
+  let currentLang = 'en';
+  try { currentLang = localStorage.getItem('ffx_lang') || 'en'; } catch(e) {}
+
+  function t(key) {
+    const idx = KEYS.indexOf(key);
+    if (idx === -1) return '';
+    const row = TR[currentLang] || TR.en;
+    return row[idx] || TR.en[idx] || '';
+  }
+
+  function applyLang() {
+    const row = TR[currentLang] || TR.en;
+    KEYS.forEach(function(k, i) {
+      const id = EL[k];
+      if (!id) return;
+      const node = document.getElementById(id);
+      if (!node) return;
+      const val = row[i] || TR.en[i] || '';
+      if (k === 'title' || k === 'warnUnlock' || k === 'fakeBody' || k === 'fakeBody2') {
+        node.innerHTML = val;
+      } else {
+        node.textContent = val;
+      }
+    });
+    const cur = document.getElementById('langCur');
+    if (cur) cur.textContent = currentLang.toUpperCase();
+
+    const langInfo = LANGS.find(function(L){ return L.c === currentLang; });
+    document.body.dir = (langInfo && langInfo.rtl) ? 'rtl' : 'ltr';
+
+    updateUnlockUI();
+  }
+
+  /* ===== LANG PICKER ===== */
+  const langBtn = document.getElementById('langBtn');
+  const langOverlay = document.getElementById('langOverlay');
+  const langList = document.getElementById('langList');
+  const langSearch = document.getElementById('langSearch');
+  const langClose = document.getElementById('langClose');
+
+  function buildLangList(filter) {
+    filter = (filter || '').toLowerCase();
+    langList.innerHTML = '';
+    LANGS.filter(function(L) {
+      return !filter || L.n.toLowerCase().indexOf(filter) > -1 || L.l.toLowerCase().indexOf(filter) > -1;
+    }).forEach(function(L) {
+      const b = document.createElement('button');
+      b.className = 'lang-item' + (L.c === currentLang ? ' active' : '');
+      b.innerHTML = '<span class="flag">' + L.f + '</span><span>' + L.n + '<span class="name">' + L.l + '</span></span>';
+      b.onclick = function() {
+        currentLang = L.c;
+        try { localStorage.setItem('ffx_lang', L.c); } catch(e) {}
+        applyLang();
+        langOverlay.classList.remove('show');
+      };
+      langList.appendChild(b);
+    });
+  }
+
+  langBtn.onclick = function() { buildLangList(''); langSearch.value = ''; langOverlay.classList.add('show'); };
+  langClose.onclick = function() { langOverlay.classList.remove('show'); };
+  langOverlay.onclick = function(e) { if (e.target === langOverlay) langOverlay.classList.remove('show'); };
+  langSearch.oninput = function() { buildLangList(langSearch.value); };
+
+  /* ===== typed ===== */
+  const typedEl = document.getElementById('typed');
+  const typedLines = ['loading premium payload...', '70% unlocked · drag mode', 'v1.0.0 · ff max ready', 'share 2x to unlock'];
+  let tli = 0, tci = 0, tdel = false;
+  function typeLoop() {
+    const line = typedLines[tli];
+    if (!tdel) {
+      typedEl.textContent = line.slice(0, ++tci);
+      if (tci >= line.length) { tdel = true; setTimeout(typeLoop, 1400); return; }
+    } else {
+      typedEl.textContent = line.slice(0, --tci);
+      if (tci <= 0) { tdel = false; tli = (tli + 1) % typedLines.length; }
+    }
+    setTimeout(typeLoop, tdel ? 30 : 60);
+  }
+  typeLoop();
+
+  /* ===== particles ===== */
+  const cvs = document.getElementById('stars');
+  const cctx = cvs.getContext('2d');
+  let w, h, parts = [];
+  function resizeCanvas() {
+    w = cvs.width = window.innerWidth;
+    h = cvs.height = window.innerHeight;
+    parts = [];
+    for (let i = 0; i < 40; i++) {
+      parts.push({
+        x: Math.random() * w, y: Math.random() * h,
+        r: Math.random() * 1.6 + 0.4,
+        vy: Math.random() * 0.4 + 0.1,
+        vx: (Math.random() - 0.5) * 0.2,
+        a: Math.random() * 0.5 + 0.2
+      });
+    }
+  }
+  function drawLoop() {
+    cctx.clearRect(0, 0, w, h);
+    for (let i = 0; i < parts.length; i++) {
+      const p = parts[i];
+      p.y += p.vy; p.x += p.vx;
+      if (p.y > h) { p.y = -5; p.x = Math.random() * w; }
+      if (p.x < -5) p.x = w + 5;
+      if (p.x > w + 5) p.x = -5;
+      cctx.beginPath();
+      cctx.arc(p.x, p.y, p.r, 0, 6.283);
+      cctx.fillStyle = 'rgba(255,60,100,' + p.a + ')';
+      cctx.fill();
+    }
+    requestAnimationFrame(drawLoop);
+  }
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas(); drawLoop();
+
+  /* ===== Nigeria time ===== */
+  const ngTime = document.getElementById('ngTime');
+  function tickClock() {
+    try {
+      ngTime.textContent = new Date().toLocaleTimeString('en-GB', {
+        timeZone: 'Africa/Lagos', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+      });
+    } catch(e) { ngTime.textContent = '--:--:--'; }
+  }
+  tickClock(); setInterval(tickClock, 1000);
+
+  /* ===== live counter ===== */
+  const liveCount = document.getElementById('liveCount');
+  let liveBase = 5 + Math.floor(Math.random() * 8);
+  liveCount.textContent = liveBase;
+  function drift() {
+    liveBase = Math.max(3, Math.min(24, liveBase + (Math.floor(Math.random() * 5) - 2)));
+    liveCount.textContent = liveBase;
+    setTimeout(drift, 2500 + Math.random() * 3000);
+  }
+  setTimeout(drift, 2500);
+
+  /* ===== toast ===== */
+  const toast = document.getElementById('toast');
+  const toastMsg = document.getElementById('toastMsg');
+  let toastT;
+  function showToast(msg, err) {
+    toastMsg.textContent = msg;
+    toast.classList.toggle('error', !!err);
+    toast.classList.add('show');
+    clearTimeout(toastT);
+    toastT = setTimeout(function() { toast.classList.remove('show'); }, 2400);
+  }
+
+  /* ===== GATE — must join first channel before site usable ===== */
+  const gateOverlay = document.getElementById('gateOverlay');
+  const gateJoinBtn = document.getElementById('gateJoinBtn');
+  const gateCloseBtn = document.getElementById('gateCloseBtn');
+  const gateCloseText = document.getElementById('gateCloseText');
+  let gateJoined = false;
+  let gateTimerActive = false;
+
+  // show gate on load (only if not already joined this session)
+  let gateDone = false;
+  try { gateDone = localStorage.getItem('ffx_gate') === '1'; } catch(e) {}
+  if (!gateDone) {
+    gateOverlay.classList.add('show');
+  } else {
+    gateOverlay.classList.remove('show');
+  }
+
+  gateJoinBtn.onclick = function() {
+    if (gateTimerActive || gateJoined) return;
+    gateTimerActive = true;
+    window.open(GATE_CHANNEL, '_blank');
+    let remaining = Math.ceil(GATE_DELAY_MS / 1000);
+    gateCloseText.textContent = 'WAIT ' + remaining + 's';
+    const iv = setInterval(function() {
+      remaining--;
+      if (remaining <= 0) {
+        clearInterval(iv);
+        gateJoined = true;
+        gateTimerActive = false;
+        gateCloseBtn.disabled = false;
+        gateCloseText.textContent = 'CONTINUE →';
+        gateCloseBtn.style.background = 'linear-gradient(135deg,#25d366,#0e7a3d)';
+        gateCloseBtn.style.color = '#fff';
+        gateCloseBtn.style.borderColor = '#25d366';
+      } else {
+        gateCloseText.textContent = 'WAIT ' + remaining + 's';
+      }
+    }, 1000);
+  };
+
+  gateCloseBtn.onclick = function() {
+    if (!gateJoined) return;
+    gateOverlay.classList.remove('show');
+    try { localStorage.setItem('ffx_gate', '1'); } catch(e) {}
+  };
+
+  /* ===== share to unlock (5s timer) ===== */
+  const unlockBtn = document.getElementById('unlockShareBtn');
+  const unlockText = document.getElementById('unlockShareText');
+  const step1 = document.getElementById('step1');
+  const step2 = document.getElementById('step2');
+  const line1 = document.getElementById('line1');
+  const unlockPanel = document.getElementById('unlockPanel');
+  const fakeOverlay = document.getElementById('fakeOverlay');
+
+  let shareCount = 0;
+  try { shareCount = parseInt(localStorage.getItem('ffx_shares') || '0', 10) || 0; } catch(e) {}
+  if (shareCount > 2) shareCount = 2;
+  if (shareCount < 0) shareCount = 0;
+
+  const shareText = "🔥 PREMIUM DRAG HEADSHOT FILE v1.0.0 — free drop from @fearlessffx\n\n" + SITE_URL + "\n\nFollow: " + PASS_LINK;
+
+  function updateUnlockUI() {
+    if (!step1) return;
+    if (shareCount >= 1) { step1.classList.add('done'); line1.classList.add('done'); }
+    else { step1.classList.remove('done'); line1.classList.remove('done'); }
+    if (shareCount >= 2) step2.classList.add('done'); else step2.classList.remove('done');
+
+    if (shareCount >= 2) {
+      unlockText.textContent = t('unlocked');
+      unlockBtn.disabled = true;
+      unlockBtn.style.background = 'linear-gradient(135deg,#128c4b,#0a5c32)';
+      unlockContent();
+    } else {
+      unlockText.textContent = t('shareBtn') + ' (' + shareCount + '/2)';
+    }
+  }
+
+  function unlockContent() {
+    const dl = document.getElementById('downloadBtn');
+    const sb = document.getElementById('setupBtn');
+    const cp = document.getElementById('copyPass');
+    [dl, sb, cp].forEach(function(b) {
+      if (!b || !b.classList.contains('locked')) return;
+      b.classList.remove('locked');
+      b.disabled = false;
+      if (b.tagName === 'A') b.style.pointerEvents = 'auto';
+    });
+    if (unlockPanel) unlockPanel.style.display = 'none';
+  }
+
+  let shareOpenedAt = 0;
+  let pendingShare = false;
+  let shareTimerActive = false;
+
+  unlockBtn.onclick = function() {
+    if (shareCount >= 2 || shareTimerActive) return;
+    shareTimerActive = true;
+    shareOpenedAt = Date.now();
+    pendingShare = true;
+
+    unlockBtn.classList.add('timing');
+    let remaining = Math.ceil(SHARE_DELAY_MS / 1000);
+    const origText = unlockText.textContent;
+    unlockText.textContent = t('waiting') + ' ' + remaining + 's...';
+
+    const countdown = setInterval(function() {
+      remaining--;
+      if (remaining <= 0) {
+        clearInterval(countdown);
+        unlockText.textContent = origText;
+        unlockBtn.classList.remove('timing');
+        shareTimerActive = false;
+        window.open('https://wa.me/?text=' + encodeURIComponent(shareText), '_blank');
+      } else {
+        unlockText.textContent = t('waiting') + ' ' + remaining + 's...';
+      }
+    }, 1000);
+  };
+
+  document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'visible' && pendingShare) {
+      pendingShare = false;
+      if (Date.now() - shareOpenedAt < 1500) { fakeOverlay.classList.add('show'); return; }
+      shareCount++;
+      try { localStorage.setItem('ffx_shares', String(shareCount)); } catch(e) {}
+      updateUnlockUI();
+      if (shareCount === 1) showToast('1 of 2 — share again');
+      else if (shareCount >= 2) showToast(t('unlocked'));
+    }
+  });
+
+  document.getElementById('fakeBtn').onclick = function() {
+    fakeOverlay.classList.remove('show');
+    showToast('try sharing properly', true);
+  };
+
+  if (shareCount >= 2) { unlockPanel.style.display = 'none'; unlockContent(); }
+  else updateUnlockUI();
+
+  /* ===== download ===== */
+  const dlBtn = document.getElementById('downloadBtn');
+  const dlOverlay = document.getElementById('dlOverlay');
+  const dlBar = document.getElementById('dlBar');
+  const dlPct = document.getElementById('dlPct');
+  const dlStatus = document.getElementById('dlStatus');
+  let dlRunning = false;
+
+  dlBtn.onclick = function() {
+    if (dlRunning || shareCount < 2) return;
+    dlRunning = true;
+    dlOverlay.classList.add('show');
+    dlBar.style.width = '0%'; dlPct.textContent = '0%';
+    dlStatus.textContent = t('dlTitle') + '...';
+    let pct = 0;
+    const iv = setInterval(function() {
+      pct += Math.floor(Math.random() * 12) + 3;
+      if (pct >= 100) {
+        pct = 100;
+        dlBar.style.width = '100%';
+        dlPct.textContent = '100%';
+        dlStatus.textContent = t('doneWord');
+        clearInterval(iv);
+        setTimeout(function() {
+          window.open(FILE_URL, '_blank');
+          dlOverlay.classList.remove('show');
+          dlRunning = false;
+        }, 500);
+        return;
+      }
+      dlBar.style.width = pct + '%';
+      dlPct.textContent = pct + '%';
+      dlStatus.textContent = t('downloadingWord') + '... ' + pct + '%';
+    }, 200);
+  };
+
+  /* ===== copy password ===== */
+  const copyBtn = document.getElementById('copyPass');
+  const copyText = document.getElementById('copyPassText');
+  copyBtn.onclick = function() {
+    if (shareCount < 2) return;
+    const done = function() {
+      copyBtn.classList.add('copied');
+      copyText.textContent = 'Password Copied ✓';
+      showToast('password link copied');
+      setTimeout(function() {
+        copyBtn.classList.remove('copied');
+        copyText.textContent = t('copyPass');
+      }, 2400);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(PASS_LINK).then(done).catch(function() { showToast('copy failed', true); });
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = PASS_LINK; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); done(); } catch(e) { showToast('copy failed', true); }
+      document.body.removeChild(ta);
+    }
+  };
+
+  document.getElementById('setupBtn').onclick = function(e) {
+    if (shareCount < 2) e.preventDefault();
+  };
+
+  /* ===== chat ===== */
+  const fab = document.getElementById('chatFab');
+  const panel = document.getElementById('chatPanel');
+  const closeBtn = document.getElementById('chatClose');
+  const body = document.getElementById('chatBody');
+  const input = document.getElementById('chatInput');
+  const sendBtn = document.getElementById('chatSend');
+  const quickWrap = document.getElementById('quickReplies');
+
+  fab.onclick = function() {
+    panel.classList.add('open');
+    fab.style.display = 'none';
+    if (!body.dataset.greeted) {
+      body.dataset.greeted = '1';
+      setTimeout(function() { botSay('welcome to Fearless FFH4x 🎯\nask me anything about the premium drag headshot file — installation, password, ban risk, or ask about Fearless himself.'); }, 300);
+    }
+  };
+  closeBtn.onclick = function() {
+    panel.classList.remove('open');
+    setTimeout(function() { fab.style.display = 'flex'; }, 200);
+  };
+
+  function addMsg(text, who) {
+    const d = document.createElement('div');
+    d.className = 'msg ' + who;
+    d.textContent = text;
+    body.appendChild(d);
+    body.scrollTop = body.scrollHeight;
+  }
+  function typing() {
+    const d = document.createElement('div');
+    d.className = 'msg bot typing';
+    d.innerHTML = '<span></span><span></span><span></span>';
+    body.appendChild(d);
+    body.scrollTop = body.scrollHeight;
+    return d;
+  }
+  function botSay(text, delay) {
+    const ty = typing();
+    setTimeout(function() { ty.remove(); addMsg(text, 'bot'); }, delay || 600);
+  }
+
+  const KB = [
+    { k:['who is fearless','who fearless','about fearless','fearless who','fearless xit','fearlessffx','owner','creator','who made','who built','who runs'], r:"👑 Fearless — that's me, the one who built this.\n\nI'm the face behind @fearlessffx. I make Free Fire drag headshot files, sensitivity setups, and drop free tools for my followers across 4 WhatsApp channels.\n\nEverything here — the file, the site, the bot — came from Fearless.\n\nFollow the main channel to stay updated: @fearlessffx" },
+    { k:['who are you','what are you','your name','who r u'], r:"👑 I'm Fearless AI — the assistant for Fearless's channel.\n\nI know everything about the drag headshot file, install steps, ban risk, and the man himself: Fearless." },
+    { k:['urdu','pakistan','pakistani','punjabi','sindhi'], r:"🇵🇰 Urdu, Punjabi, and Sindhi are all in the language menu.\n\nTap 🌐 LANG in the header, scroll, pick yours. All three flip the page to right-to-left." },
+    { k:['gate','new channel','join first','popup'], r:"📢 The popup on load asks you to join our new channel first.\n\nTap Join, wait 5 seconds, the Close button unlocks. After that the site works normally." },
+    { k:['fake','not working','error','failed'], r:"⚠️ Got 'FILE NOT WORKING'? That's the fake-share detector.\n\nYou tapped share but didn't actually send the link, OR you came back too fast.\n\nFix:\n1. Wait the 5 seconds\n2. Send to any chat\n3. Come back after sending\n\nReal shares only." },
+    { k:['password','pass','key'], r:"🔐 File password is in my main channel.\n\nTap 'Copy File Password' after 2 real shares — it copies the channel link. Look for the pinned post.\n\n@fearlessffx" },
+    { k:['install','installation','guide','how'], r:"⚙️ Install steps:\n\n1. Download the .7z\n2. Extract with ZArchiver\n3. Open setup guide on the page\n4. Follow exactly\n\nTell me which step fails." },
+    { k:['download','link','file','mediafire'], r:"📥 The download button unlocks after 2 WhatsApp shares.\n\nThen tap it — progress runs, MediaFire opens." },
+    { k:['share','locked','unlock','timer','5 sec','five'], r:"🔓 To unlock:\n\n1. Tap green Share button\n2. Wait the 5-second timer\n3. WhatsApp opens — send to any chat\n4. Come back, tap again\n5. After 2 real shares — unlocked\n\nFake shares are detected." },
+    { k:['ban','safe','risk','detect'], r:"🛡️ v1.0.0 premium build. Offline/training = safe. Online = risk.\n\nDon't use on ranked or live." },
+    { k:['drag','headshot','hs'], r:"🎯 Drag headshot locks head bone on drag.\n\nFile contains drag_core, headshot_lock, recoil 0.00, spread 0.00, aim assist." },
+    { k:['device','android','ios','phone'], r:"📱 Android only. No root needed.\n\niOS not supported." },
+    { k:['ff max','freefire max','max'], r:"🔥 Built for FF MAX (com.dts.freefiremax). Also works on regular FF." },
+    { k:['version','update','v1','latest'], r:"📅 Current: v1.0.0 — the first release from Fearless.\nMore builds coming. Updates in main channel." },
+    { k:['price','cost','free','buy'], r:"💰 Free for followers. 100% PRO is separate — details in channel." },
+    { k:['channel','whatsapp','join','follow'], r:"📢 4 channels now:\n1. Main — @fearlessffx\n2. Second — backup\n3. Third — setup guides\n4. NEW — latest drops (@fearlessffx new)" },
+    { k:['crash','black screen'], r:"🔧 Crash fix:\n1. Clear FF cache\n2. Reinstall modded files\n3. Grant storage\n4. Follow setup guide" },
+    { k:['extract','7z','rar','zip'], r:"📦 Extract with ZArchiver. Enter password from my channel." },
+    { k:['language','translate','arabic'], r:"🌍 Tap LANG in header — 15 languages including Arabic, Urdu, Punjabi, Sindhi.\n\nArabic/Urdu/Punjabi/Sindhi flip the page to right-to-left automatically." },
+    { k:['thank','thanks','nice','cool'], r:"🙏 anytime. follow the channels." },
+    { k:['hello','hi','hey','yo'], r:"👋 yo. ask me about the file — or about Fearless." }
+  ];
+
+  function findReply(txt) {
+    const s = txt.toLowerCase().trim();
+    let best = null, score = 0;
+    for (let i = 0; i < KB.length; i++) {
+      let sc = 0;
+      for (let j = 0; j < KB[i].k.length; j++) if (s.indexOf(KB[i].k[j]) > -1) sc += KB[i].k[j].length;
+      if (sc > score) { score = sc; best = KB[i]; }
+    }
+    return best ? best.r : "🤖 not sure.\n\nTry: install, password, download, unlock, ban risk, FF MAX, crash, extract, or ask 'who is Fearless'.\n\nOr ask in @fearlessffx";
+  }
+
+  function userSend(txt) {
+    if (!txt.trim()) return;
+    addMsg(txt, 'user');
+    input.value = '';
+    botSay(findReply(txt), 450 + Math.random() * 350);
+  }
+  sendBtn.onclick = function() { userSend(input.value); };
+  input.onkeydown = function(e) { if (e.key === 'Enter') userSend(input.value); };
+
+  ['Who is Fearless','How to unlock','Install help','Password?','Ban risk'].forEach(function(q) {
+    const b = document.createElement('button');
+    b.textContent = q;
+    b.onclick = function() { userSend(q); };
+    quickWrap.appendChild(b);
+  });
+
+  /* ===== INIT ===== */
+  applyLang();
+})();
+</script>
+
+</body>
+                                                                                                                            </html>
